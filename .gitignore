@@ -1,0 +1,40 @@
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env & secrets
+.env
+.env.local
+.env.*.local
+deploy/.env
+
+# Java / Spring Boot
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+*.log
+hs_err_pid*
+
+# Node / Vue
+frontend/**/node_modules/
+frontend/**/dist/
+frontend/**/.nuxt/
+frontend/**/.output/
+*.local
+
+# Test & coverage
+coverage/
+.nyc_output/
+
+# Docker volumes (local)
+data/mysql/
+data/redis/

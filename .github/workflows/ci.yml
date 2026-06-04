@@ -1,0 +1,20 @@
+name: CI Placeholder
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [develop]
+
+jobs:
+  docs-and-structure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Phase 0 artifacts
+        run: |
+          test -f docs/PRD-v0.1.md
+          test -f docs/database/ER.md
+          test -f backend/sql/V1__init_schema.sql
+          test -f docker-compose.yml
+          echo "Phase 0 structure OK"
