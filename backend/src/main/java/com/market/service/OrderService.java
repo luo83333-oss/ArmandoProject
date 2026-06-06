@@ -111,6 +111,26 @@ public class OrderService {
         return toVO(requireShopOrder(shop.getId(), orderId));
     }
 
+    public List<OrderVO> listForPlatform(Integer status, Long shopId) {
+        LambdaQueryWrapper<UserOrder> wrapper = new LambdaQueryWrapper<UserOrder>()
+                .orderByDesc(UserOrder::getCreatedAt);
+        if (status != null) {
+            wrapper.eq(UserOrder::getStatus, status);
+        }
+        if (shopId != null) {
+            wrapper.eq(UserOrder::getShopId, shopId);
+        }
+        return orderMapper.selectList(wrapper).stream().map(this::toVO).collect(Collectors.toList());
+    }
+
+    public OrderVO getForPlatform(Long orderId) {
+        UserOrder order = orderMapper.selectById(orderId);
+        if (order == null) {
+            throw new BusinessException(ResultCode.NOT_FOUND.getCode(), "订单不存在");
+        }
+        return toVO(order);
+    }
+
     @Transactional
     public OrderVO mockPay(Long userId, Long orderId) {
         UserOrder order = requireUserOrder(userId, orderId);

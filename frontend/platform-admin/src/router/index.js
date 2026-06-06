@@ -2,12 +2,16 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { getToken } from '../api/request'
 import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
+import Users from '../views/Users.vue'
+import Orders from '../views/Orders.vue'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/login', component: Login },
-    { path: '/', component: Home, meta: { requiresAuth: true } }
+    { path: '/', component: Home, meta: { requiresAuth: true } },
+    { path: '/users', component: Users, meta: { requiresAuth: true } },
+    { path: '/orders', component: Orders, meta: { requiresAuth: true } }
   ]
 })
 

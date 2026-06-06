@@ -3,7 +3,9 @@
     <el-aside width="200px">
       <div class="logo">平台总控台</div>
       <el-menu router :default-active="$route.path">
-        <el-menu-item index="/">监管首页</el-menu-item>
+        <el-menu-item index="/">商家审核</el-menu-item>
+        <el-menu-item index="/users">用户管理</el-menu-item>
+        <el-menu-item index="/orders">订单监管</el-menu-item>
       </el-menu>
     </el-aside>
     <el-main><router-view /></el-main>

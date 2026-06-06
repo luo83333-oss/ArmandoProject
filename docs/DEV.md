@@ -190,7 +190,29 @@ Get-Content d:\Armando\backend\sql\V2__add_user_role.sql | docker compose exec -
 | 8082 端口占用 | 修改 `application.yml` 的 `server.port` |
 | npm 慢 | `npm config set registry https://registry.npmmirror.com` |
 
-## 11. 目录说明
+## 11. Epic 1.6 联调流程（总控台监管）
+
+| 步骤 | 操作 |
+|------|------|
+| 1 | 平台总控台 http://localhost:5185 登录 `13800000000` / `admin123` |
+| 2 | **商家审核**：审核/驳回/冻结入驻申请（Epic 1.2 已有） |
+| 3 | **用户管理**：查看注册用户，禁用/启用（管理员账号不可操作） |
+| 4 | **订单监管**：查看全平台订单，按状态筛选，点详情查看商品明细 |
+
+### 平台监管 API（Epic 1.6 新增）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/platform/users` | 用户列表 |
+| PATCH | `/api/platform/users/{id}/status` | 禁用/启用 `{ "status": 0\|1 }` |
+| GET | `/api/platform/orders` | 全平台订单（`status`、`shopId` 可选） |
+| GET | `/api/platform/orders/{id}` | 订单详情 |
+
+### MVP 端到端验收清单
+
+入驻 → 发品上架 → 用户下单支付 → 商家发货 → 用户确认收货 → 总控台可查订单与用户。
+
+## 12. 目录说明
 
 ```
 backend/          Spring Boot 2.7 + MyBatis-Plus
