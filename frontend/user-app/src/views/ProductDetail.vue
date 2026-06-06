@@ -8,8 +8,20 @@
       <div class="shop">{{ product.shopName }}</div>
     </div>
     <van-cell-group inset title="规格">
-      <van-cell v-for="sku in product.skus" :key="sku.id" :title="sku.specJson" :value="`¥${sku.price} · 库存 ${sku.stock}`" />
+      <van-cell
+        v-for="sku in product.skus"
+        :key="sku.id"
+        :title="sku.specJson"
+        :value="`¥${sku.price} · 库存 ${sku.stock}`"
+        clickable
+        :class="{ active: selectedSkuId === sku.id }"
+        @click="selectedSkuId = sku.id"
+      />
     </van-cell-group>
+    <div class="bar">
+      <van-button type="warning" @click="onAddCart">加入购物车</van-button>
+      <van-button type="primary" @click="onBuyNow">立即购买</van-button>
+    </div>
     <van-cell-group inset title="详情" v-if="product.detailHtml">
       <van-cell>
         <div class="detail">{{ product.detailHtml }}</div>
@@ -22,20 +34,68 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { showFailToast } from 'vant'
+import { useRouter } from 'vue-router'
+import { showFailToast, showSuccessToast } from 'vant'
 import { getProduct } from '../api/product'
+import { addToCart, updateCartItem, listCart } from '../api/cart'
+import { getToken } from '../api/request'
 
 const route = useRoute()
+const router = useRouter()
 const product = ref(null)
+const selectedSkuId = ref(null)
 
 const minPrice = computed(() => {
   if (!product.value?.minPrice) return '0.00'
   return Number(product.value.minPrice).toFixed(2)
 })
 
+function requireLogin() {
+  if (!getToken()) {
+    router.push('/login')
+    return false
+  }
+  return true
+}
+
+function requireSku() {
+  if (!selectedSkuId.value) {
+    showFailToast('请选择规格')
+    return false
+  }
+  return true
+}
+
+async function onAddCart() {
+  if (!requireLogin() || !requireSku()) return
+  try {
+    await addToCart(selectedSkuId.value, 1)
+    showSuccessToast('已加入购物车')
+  } catch (e) {
+    showFailToast(e.message)
+  }
+}
+
+async function onBuyNow() {
+  if (!requireLogin() || !requireSku()) return
+  try {
+    const item = await addToCart(selectedSkuId.value, 1)
+    const cart = await listCart()
+    for (const c of cart) {
+      await updateCartItem(c.id, { selected: c.id === item.id ? 1 : 0 })
+    }
+    router.push('/checkout')
+  } catch (e) {
+    showFailToast(e.message)
+  }
+}
+
 onMounted(async () => {
   try {
     product.value = await getProduct(route.params.id)
+    if (product.value?.skus?.length) {
+      selectedSkuId.value = product.value.skus[0].id
+    }
   } catch (e) {
     showFailToast(e.message)
   }
@@ -43,7 +103,10 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.page { min-height: 100vh; background: #f7f8fa; padding-bottom: 24px; }
+.page { min-height: 100vh; background: #f7f8fa; padding-bottom: 72px; }
+.bar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; gap: 8px; padding: 8px 16px; background: #fff; box-shadow: 0 -2px 8px rgba(0,0,0,.06); }
+.bar .van-button { flex: 1; }
+.active { background: #fff7e6; }
 .info { background: #fff; padding: 16px; margin-bottom: 12px; }
 .price { color: #ee0a24; font-size: 22px; font-weight: bold; }
 .title { font-size: 16px; margin-top: 8px; }

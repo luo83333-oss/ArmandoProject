@@ -67,12 +67,11 @@ cd frontend/user-app && npm install && npm run dev
 
 ## 当前阶段
 
-**Phase 1 — MVP 第 3 周（Epic 1.3）**：商品管理
+**Phase 1 — MVP 第 4 周（Epic 1.4）**：购物车与下单
 
-- 商家后台：商品 CRUD、SKU/库存、上下架
-- 用户端：商品列表/详情、关键词搜索、类目筛选
-- 后端：类目树、违规字段预留（`violation_flag`）
+- 用户端：购物车、下单页、模拟支付、订单列表
+- 后端：购物车 CRUD、订单主表/明细、支付后扣库存
 
-联调步骤见 [docs/DEV.md](docs/DEV.md) 第 7 节。
+联调步骤见 [docs/DEV.md](docs/DEV.md) 第 8 节。
 
 Linear：[多商户电商平台](https://linear.app/code2michael/project/多商户电商平台-a4beddaf556b)

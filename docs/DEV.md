@@ -137,7 +137,29 @@ Get-Content d:\Armando\backend\sql\V2__add_user_role.sql | docker compose exec -
 | PATCH | `/api/merchant/products/{id}/shelf` | 上下架 `{ "shelfStatus": 1 }` |
 | DELETE | `/api/merchant/products/{id}` | 删除商品 |
 
-## 8. 常见问题
+## 8. Epic 1.4 联调流程（购物车与下单）
+
+| 步骤 | 操作 |
+|------|------|
+| 1 | 用户端登录 → 商品详情 → **加入购物车** 或 **立即购买** |
+| 2 | **购物车** 勾选商品 → **去结算** |
+| 3 | 填写收货地址 → **提交订单** |
+| 4 | 订单详情页 → **模拟支付** → 状态变为「已付款」 |
+
+### 购物车/订单 API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/cart` | 购物车列表 |
+| POST | `/api/cart` | 加入 `{ skuId, quantity }` |
+| PUT | `/api/cart/{id}` | 更新数量/勾选 |
+| DELETE | `/api/cart/{id}` | 删除 |
+| POST | `/api/orders/checkout` | 下单（已勾选商品） |
+| GET | `/api/orders` | 我的订单 |
+| GET | `/api/orders/{id}` | 订单详情 |
+| POST | `/api/orders/{id}/pay` | 模拟支付 |
+
+## 9. 常见问题
 
 | 问题 | 处理 |
 |------|------|
@@ -145,7 +167,7 @@ Get-Content d:\Armando\backend\sql\V2__add_user_role.sql | docker compose exec -
 | 8082 端口占用 | 修改 `application.yml` 的 `server.port` |
 | npm 慢 | `npm config set registry https://registry.npmmirror.com` |
 
-## 9. 目录说明
+## 10. 目录说明
 
 ```
 backend/          Spring Boot 2.7 + MyBatis-Plus
