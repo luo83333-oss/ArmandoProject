@@ -22,6 +22,7 @@
           <el-descriptions-item v-if="merchant.shopName" label="店铺名称">{{ merchant.shopName }}</el-descriptions-item>
         </el-descriptions>
         <el-button v-if="merchant.auditStatus === 2" type="primary" class="mt" @click="$router.push('/apply')">重新申请</el-button>
+        <el-button v-if="merchant.auditStatus === 1" type="primary" class="mt" @click="$router.push('/products')">商品管理</el-button>
       </template>
     </el-card>
   </div>

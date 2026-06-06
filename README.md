@@ -42,10 +42,10 @@ cd frontend/user-app && npm install && npm run dev
 
 | 服务 | 地址 |
 |------|------|
-| API | http://localhost:8081/api/health |
-| 用户端 | http://localhost:5173 |
-| 商家端 | http://localhost:5174 |
-| 总控台 | http://localhost:5175 |
+| API | http://localhost:8082/api/health |
+| 用户端 | http://localhost:5183 |
+| 商家端 | http://localhost:5184 |
+| 总控台 | http://localhost:5185 |
 | MySQL | localhost:3306 / market |
 | Redis | localhost:6379 |
 
@@ -67,13 +67,12 @@ cd frontend/user-app && npm install && npm run dev
 
 ## 当前阶段
 
-**Phase 1 — MVP 第 2 周（Epic 1.2）**：注册登录、商家入驻、平台审核、店铺绑定
+**Phase 1 — MVP 第 3 周（Epic 1.3）**：商品管理
 
-- 用户端：注册 / 登录 / 微信 Mock 登录
-- 商家后台：入驻申请、审核状态查看
-- 总控台：商家审核（通过 / 驳回 / 冻结）
-- 后端：JWT + BCrypt、商家与店铺自动绑定
+- 商家后台：商品 CRUD、SKU/库存、上下架
+- 用户端：商品列表/详情、关键词搜索、类目筛选
+- 后端：类目树、违规字段预留（`violation_flag`）
 
-联调步骤见 [docs/DEV.md](docs/DEV.md) 第 5–6 节。已有数据库需执行 `backend/sql/V2__add_user_role.sql`。
+联调步骤见 [docs/DEV.md](docs/DEV.md) 第 7 节。
 
 Linear：[多商户电商平台](https://linear.app/code2michael/project/多商户电商平台-a4beddaf556b)

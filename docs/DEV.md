@@ -33,7 +33,7 @@ cd d:\Armando\backend
 
 **新开终端**后执行 `java -version` 应有输出。
 
-## 3. 启动后端 API（端口 8081）
+## 3. 启动后端 API（端口 8082）
 
 ```powershell
 cd d:\Armando\backend
@@ -42,7 +42,7 @@ cd d:\Armando\backend
 
 > 首次运行会自动下载 Maven 3.9.9 到用户目录，需能访问 `repo.maven.apache.org`（网络不稳可多试几次）。
 
-健康检查：http://localhost:8081/api/health
+健康检查：http://localhost:8082/api/health
 
 期望响应：
 
@@ -64,9 +64,11 @@ npm run dev
 
 | 端 | 目录 | 地址 |
 |----|------|------|
-| 用户端 H5 | `frontend/user-app` | http://localhost:5173 |
-| 商家后台 | `frontend/merchant-admin` | http://localhost:5174 |
-| 平台总控台 | `frontend/platform-admin` | http://localhost:5175 |
+| 用户端 H5 | `frontend/user-app` | http://localhost:5183 |
+| 商家后台 | `frontend/merchant-admin` | http://localhost:5184 |
+| 平台总控台 | `frontend/platform-admin` | http://localhost:5185 |
+
+> Armando 使用 **8082 / 5183–5185** 专用端口，避免与 DeepSeek 等项目（5173、8081 等）冲突。
 
 ```powershell
 cd d:\Armando\frontend\merchant-admin
@@ -90,9 +92,9 @@ Get-Content d:\Armando\backend\sql\V2__add_user_role.sql | docker compose exec -
 
 | 步骤 | 操作 |
 |------|------|
-| 1 | 用户端 http://localhost:5173 注册（验证码固定 `123456`） |
-| 2 | 商家后台 http://localhost:5174 用同一账号登录 → 提交入驻申请 |
-| 3 | 平台总控台 http://localhost:5175 登录 `13800000000` / `admin123`（后端首次启动自动创建） |
+| 1 | 用户端 http://localhost:5183 注册（验证码固定 `123456`） |
+| 2 | 商家后台 http://localhost:5184 用同一账号登录 → 提交入驻申请 |
+| 3 | 平台总控台 http://localhost:5185 登录 `13800000000` / `admin123`（后端首次启动自动创建） |
 | 4 | 在总控台「通过」申请 → 商家后台可看到店铺名称 |
 
 ### 主要 API
@@ -111,15 +113,39 @@ Get-Content d:\Armando\backend\sql\V2__add_user_role.sql | docker compose exec -
 
 审核动作 `action`：`1` 通过、`2` 驳回、`3` 冻结。
 
-## 7. 常见问题
+## 7. Epic 1.3 联调流程（商品管理）
+
+| 步骤 | 操作 |
+|------|------|
+| 1 | 确保已完成 Epic 1.2 商家入驻审核 |
+| 2 | 商家后台 → **商品管理** → **发布商品**（选类目、填 SKU 价格库存） |
+| 3 | 在商品列表点 **上架** |
+| 4 | 用户端首页 → **逛商品** → 搜索/分类筛选 → 查看详情 |
+
+后端首次启动会自动写入商品类目种子（数码/服装/食品）。`product.violation_flag` 字段已预留供 Phase 2 违规审核。
+
+### 商品 API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/categories` | 类目树（公开） |
+| GET | `/api/products` | 用户端商品列表（`keyword`、`categoryId`、分页） |
+| GET | `/api/products/{id}` | 商品详情（仅上架） |
+| GET | `/api/merchant/products` | 商家商品列表（需登录+已入驻） |
+| POST | `/api/merchant/products` | 创建商品 |
+| PUT | `/api/merchant/products/{id}` | 更新商品 |
+| PATCH | `/api/merchant/products/{id}/shelf` | 上下架 `{ "shelfStatus": 1 }` |
+| DELETE | `/api/merchant/products/{id}` | 删除商品 |
+
+## 8. 常见问题
 
 | 问题 | 处理 |
 |------|------|
 | mysql/redis error | `docker compose ps` 确认 healthy |
-| 8081 端口占用 | 修改 `application.yml` 的 `server.port` |
+| 8082 端口占用 | 修改 `application.yml` 的 `server.port` |
 | npm 慢 | `npm config set registry https://registry.npmmirror.com` |
 
-## 8. 目录说明
+## 9. 目录说明
 
 ```
 backend/          Spring Boot 2.7 + MyBatis-Plus

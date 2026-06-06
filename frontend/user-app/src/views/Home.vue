@@ -8,6 +8,7 @@
     <div class="actions">
       <van-button v-if="!user" round block type="primary" @click="$router.push('/login')">登录 / 注册</van-button>
       <van-button v-else round block type="danger" plain @click="onLogout">退出登录</van-button>
+      <van-button round block type="primary" plain class="mt" @click="$router.push('/products')">逛商品</van-button>
       <van-button round block plain class="mt" :loading="checking" @click="checkHealth">检测 API</van-button>
     </div>
   </div>

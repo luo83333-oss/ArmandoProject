@@ -22,7 +22,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/api/auth/send-code",
                         "/api/auth/register",
                         "/api/auth/login",
-                        "/api/auth/wechat"
+                        "/api/auth/wechat",
+                        "/api/categories",
+                        "/api/categories/**",
+                        "/api/products",
+                        "/api/products/**"
                 );
     }
 
