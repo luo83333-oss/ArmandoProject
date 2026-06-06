@@ -22,6 +22,11 @@ public class OrderVO {
     private String statusLabel;
     private Map<String, Object> address;
     private List<OrderItemVO> items;
+    private String logisticsNo;
     private LocalDateTime paidAt;
+    private LocalDateTime shippedAt;
+    private LocalDateTime completedAt;
     private LocalDateTime createdAt;
+    /** 售后入口占位：已完成订单可展示 */
+    private Boolean afterSaleAvailable;
 }

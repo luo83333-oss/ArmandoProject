@@ -20,8 +20,8 @@
         <el-form-item label="SKU 规格" required>
           <div v-for="(sku, idx) in form.skus" :key="idx" class="sku-row">
             <el-input v-model="sku.specJson" placeholder='规格 JSON，如 {"颜色":"红"}' style="width:200px" />
-            <el-input-number v-model="sku.price" :min="0.01" :precision="2" placeholder="价格" />
-            <el-input-number v-model="sku.stock" :min="0" placeholder="库存" />
+            <el-input-number v-model="sku.price" :min="0.01" :step="0.01" :precision="2" placeholder="价格" />
+            <el-input-number v-model="sku.stock" :min="0" :step="1" placeholder="库存" />
             <el-button v-if="form.skus.length > 1" type="danger" link @click="form.skus.splice(idx, 1)">删除</el-button>
           </div>
           <el-button type="primary" link @click="form.skus.push({ specJson: '', price: 1, stock: 0 })">+ 添加 SKU</el-button>

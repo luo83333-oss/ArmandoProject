@@ -39,4 +39,14 @@ public class OrderController {
     public Result<OrderVO> mockPay(@PathVariable Long id) {
         return Result.ok(orderService.mockPay(UserContext.getUserId(), id));
     }
+
+    @PostMapping("/{id}/confirm")
+    public Result<OrderVO> confirm(@PathVariable Long id) {
+        return Result.ok(orderService.confirmReceive(UserContext.getUserId(), id));
+    }
+
+    @PostMapping("/{id}/cancel")
+    public Result<OrderVO> cancel(@PathVariable Long id) {
+        return Result.ok(orderService.cancel(UserContext.getUserId(), id));
+    }
 }

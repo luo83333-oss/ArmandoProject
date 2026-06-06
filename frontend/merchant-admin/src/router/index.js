@@ -5,6 +5,7 @@ import Login from '../views/Login.vue'
 import Apply from '../views/Apply.vue'
 import Products from '../views/Products.vue'
 import ProductForm from '../views/ProductForm.vue'
+import Orders from '../views/Orders.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -14,7 +15,8 @@ const router = createRouter({
     { path: '/apply', component: Apply, meta: { requiresAuth: true } },
     { path: '/products', component: Products, meta: { requiresAuth: true } },
     { path: '/products/new', component: ProductForm, meta: { requiresAuth: true } },
-    { path: '/products/:id/edit', component: ProductForm, meta: { requiresAuth: true } }
+    { path: '/products/:id/edit', component: ProductForm, meta: { requiresAuth: true } },
+    { path: '/orders', component: Orders, meta: { requiresAuth: true } }
   ]
 })
 

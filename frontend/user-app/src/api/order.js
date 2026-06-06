@@ -18,3 +18,11 @@ export function getOrder(id) {
 export function mockPay(id) {
   return request(`/api/orders/${id}/pay`, { method: 'POST' })
 }
+
+export function confirmReceive(id) {
+  return request(`/api/orders/${id}/confirm`, { method: 'POST' })
+}
+
+export function cancelOrder(id) {
+  return request(`/api/orders/${id}/cancel`, { method: 'POST' })
+}

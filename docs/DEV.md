@@ -159,7 +159,30 @@ Get-Content d:\Armando\backend\sql\V2__add_user_role.sql | docker compose exec -
 | GET | `/api/orders/{id}` | 订单详情 |
 | POST | `/api/orders/{id}/pay` | 模拟支付 |
 
-## 9. 常见问题
+## 9. Epic 1.5 联调流程（订单状态机）
+
+订单状态：`10` 待付款 → `20` 待发货 → `30` 已发货 → `40` 已完成；待付款可取消为 `50`。
+
+| 步骤 | 操作 |
+|------|------|
+| 1 | 用户端完成 Epic 1.4 下单并 **模拟支付**（状态变为「待发货」） |
+| 2 | 商家后台 → **订单管理** → 筛选「待发货」→ **发货** 填写物流单号 |
+| 3 | 用户端 **我的订单** → 订单详情 → **确认收货**（状态变为「已完成」） |
+| 4 | 已完成订单详情显示「申请售后（V2 开放）」占位按钮 |
+
+### 订单状态 API（Epic 1.5 新增）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/merchant/orders` | 商家订单列表（`status` 可选） |
+| GET | `/api/merchant/orders/{id}` | 商家订单详情 |
+| POST | `/api/merchant/orders/{id}/ship` | 发货 `{ logisticsNo }` |
+| POST | `/api/orders/{id}/confirm` | 用户确认收货 |
+| POST | `/api/orders/{id}/cancel` | 用户取消（仅待付款） |
+
+每次状态变更会写入 `order_status_log` 表。
+
+## 10. 常见问题
 
 | 问题 | 处理 |
 |------|------|
@@ -167,7 +190,7 @@ Get-Content d:\Armando\backend\sql\V2__add_user_role.sql | docker compose exec -
 | 8082 端口占用 | 修改 `application.yml` 的 `server.port` |
 | npm 慢 | `npm config set registry https://registry.npmmirror.com` |
 
-## 10. 目录说明
+## 11. 目录说明
 
 ```
 backend/          Spring Boot 2.7 + MyBatis-Plus

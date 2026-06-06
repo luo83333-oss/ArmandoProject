@@ -25,6 +25,7 @@ import com.market.mapper.UserOrderMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -50,6 +51,8 @@ public class OrderService {
     private final ProductMapper productMapper;
     private final ShopMapper shopMapper;
     private final CartService cartService;
+    private final MerchantShopService merchantShopService;
+    private final OrderStateMachine orderStateMachine;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -81,25 +84,38 @@ public class OrderService {
     }
 
     public List<OrderVO> listMine(Long userId) {
-        List<UserOrder> orders = orderMapper.selectList(
+        return orderMapper.selectList(
                 new LambdaQueryWrapper<UserOrder>()
                         .eq(UserOrder::getUserId, userId)
                         .orderByDesc(UserOrder::getCreatedAt)
-        );
-        return orders.stream().map(this::toVO).collect(Collectors.toList());
+        ).stream().map(this::toVO).collect(Collectors.toList());
+    }
+
+    public List<OrderVO> listForMerchant(Long userId, Integer status) {
+        Shop shop = merchantShopService.requireApprovedShop(userId);
+        LambdaQueryWrapper<UserOrder> wrapper = new LambdaQueryWrapper<UserOrder>()
+                .eq(UserOrder::getShopId, shop.getId())
+                .orderByDesc(UserOrder::getCreatedAt);
+        if (status != null) {
+            wrapper.eq(UserOrder::getStatus, status);
+        }
+        return orderMapper.selectList(wrapper).stream().map(this::toVO).collect(Collectors.toList());
     }
 
     public OrderVO getMine(Long userId, Long orderId) {
-        UserOrder order = requireUserOrder(userId, orderId);
-        return toVO(order);
+        return toVO(requireUserOrder(userId, orderId));
+    }
+
+    public OrderVO getForMerchant(Long userId, Long orderId) {
+        Shop shop = merchantShopService.requireApprovedShop(userId);
+        return toVO(requireShopOrder(shop.getId(), orderId));
     }
 
     @Transactional
     public OrderVO mockPay(Long userId, Long orderId) {
         UserOrder order = requireUserOrder(userId, orderId);
-        if (order.getStatus() != OrderStatus.PENDING_PAY.getCode()) {
-            throw new BusinessException(ResultCode.BAD_REQUEST.getCode(), "订单状态不允许支付");
-        }
+        int from = order.getStatus();
+        orderStateMachine.validateTransition(from, OrderStatus.PAID.getCode());
 
         List<OrderItem> items = orderItemMapper.selectList(
                 new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, orderId)
@@ -116,6 +132,46 @@ public class OrderService {
         order.setStatus(OrderStatus.PAID.getCode());
         order.setPaidAt(LocalDateTime.now());
         orderMapper.updateById(order);
+        orderStateMachine.logTransition(orderId, from, OrderStatus.PAID.getCode(), "user", userId, "模拟支付");
+        return toVO(order);
+    }
+
+    @Transactional
+    public OrderVO cancel(Long userId, Long orderId) {
+        UserOrder order = requireUserOrder(userId, orderId);
+        int from = order.getStatus();
+        orderStateMachine.validateTransition(from, OrderStatus.CANCELLED.getCode());
+        order.setStatus(OrderStatus.CANCELLED.getCode());
+        orderMapper.updateById(order);
+        orderStateMachine.logTransition(orderId, from, OrderStatus.CANCELLED.getCode(), "user", userId, "用户取消");
+        return toVO(order);
+    }
+
+    @Transactional
+    public OrderVO ship(Long merchantUserId, Long orderId, String logisticsNo) {
+        Shop shop = merchantShopService.requireApprovedShop(merchantUserId);
+        UserOrder order = requireShopOrder(shop.getId(), orderId);
+        int from = order.getStatus();
+        orderStateMachine.validateTransition(from, OrderStatus.SHIPPED.getCode());
+
+        order.setStatus(OrderStatus.SHIPPED.getCode());
+        order.setLogisticsNo(logisticsNo);
+        order.setShippedAt(LocalDateTime.now());
+        orderMapper.updateById(order);
+        orderStateMachine.logTransition(orderId, from, OrderStatus.SHIPPED.getCode(), "merchant", merchantUserId, logisticsNo);
+        return toVO(order);
+    }
+
+    @Transactional
+    public OrderVO confirmReceive(Long userId, Long orderId) {
+        UserOrder order = requireUserOrder(userId, orderId);
+        int from = order.getStatus();
+        orderStateMachine.validateTransition(from, OrderStatus.COMPLETED.getCode());
+
+        order.setStatus(OrderStatus.COMPLETED.getCode());
+        order.setCompletedAt(LocalDateTime.now());
+        orderMapper.updateById(order);
+        orderStateMachine.logTransition(orderId, from, OrderStatus.COMPLETED.getCode(), "user", userId, "确认收货");
         return toVO(order);
     }
 
@@ -162,6 +218,7 @@ public class OrderService {
             cartItemMapper.deleteById(cartItem.getId());
         }
 
+        orderStateMachine.logTransition(order.getId(), null, OrderStatus.PENDING_PAY.getCode(), "user", userId, "创建订单");
         return toVO(order);
     }
 
@@ -173,12 +230,19 @@ public class OrderService {
         return order;
     }
 
+    private UserOrder requireShopOrder(Long shopId, Long orderId) {
+        UserOrder order = orderMapper.selectById(orderId);
+        if (order == null || !shopId.equals(order.getShopId())) {
+            throw new BusinessException(ResultCode.NOT_FOUND.getCode(), "订单不存在");
+        }
+        return order;
+    }
+
     private OrderVO toVO(UserOrder order) {
         Shop shop = shopMapper.selectById(order.getShopId());
         List<OrderItem> items = orderItemMapper.selectList(
                 new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, order.getId())
         );
-        OrderStatus status = findStatus(order.getStatus());
         return OrderVO.builder()
                 .id(order.getId())
                 .orderNo(order.getOrderNo())
@@ -187,7 +251,7 @@ public class OrderService {
                 .totalAmount(order.getTotalAmount())
                 .payAmount(order.getPayAmount())
                 .status(order.getStatus())
-                .statusLabel(status != null ? status.getLabel() : "未知")
+                .statusLabel(OrderStateMachine.labelOf(order.getStatus()))
                 .address(parseAddress(order.getAddressJson()))
                 .items(items.stream().map(i -> OrderItemVO.builder()
                         .id(i.getId())
@@ -198,18 +262,13 @@ public class OrderService {
                         .quantity(i.getQuantity())
                         .unitPrice(i.getUnitPrice())
                         .build()).collect(Collectors.toList()))
+                .logisticsNo(order.getLogisticsNo())
                 .paidAt(order.getPaidAt())
+                .shippedAt(order.getShippedAt())
+                .completedAt(order.getCompletedAt())
                 .createdAt(order.getCreatedAt())
+                .afterSaleAvailable(order.getStatus() == OrderStatus.COMPLETED.getCode())
                 .build();
-    }
-
-    private OrderStatus findStatus(int code) {
-        for (OrderStatus s : OrderStatus.values()) {
-            if (s.getCode() == code) {
-                return s;
-            }
-        }
-        return null;
     }
 
     private String generateOrderNo() {
@@ -227,6 +286,9 @@ public class OrderService {
     }
 
     private Map<String, Object> parseAddress(String json) {
+        if (!StringUtils.hasText(json)) {
+            return Map.of();
+        }
         try {
             return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
         } catch (Exception e) {
