@@ -280,7 +280,28 @@ Get-Content d:\Armando\backend\sql\V2__add_user_role.sql | docker compose exec -
 
 前端图表组件：`frontend/merchant-admin/src/components/BaseChart.vue`（ECharts 封装，总控台可复用）。
 
-## 15. 目录说明
+## 15. Epic 2.4 联调流程（平台交易统计）
+
+全平台 GMV 基于已支付订单（待发货/已发货/已完成）的 `payAmount` 汇总；佣金来自 `commission_amount`。
+
+| 步骤 | 操作 |
+|------|------|
+| 1 | 管理员登录总控台 http://localhost:5185 |
+| 2 | 侧栏进入 **交易统计** |
+| 3 | 查看今日/累计 GMV、订单、佣金、有交易店铺数 |
+| 4 | 切换 **按日/周/月** 与 **近7/30/90天** 查看趋势图 |
+| 5 | 查看商家 GMV 排行，可 **导出 CSV** |
+
+### 统计 API（需管理员）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/platform/stats/overview` | 平台概览 |
+| GET | `/api/platform/stats/trend?days=30&granularity=day` | 趋势，`granularity`: day/week/month |
+| GET | `/api/platform/stats/shops?days=30&limit=20` | 商家 GMV 排行 |
+| GET | `/api/platform/stats/shops/export?days=30` | 导出 CSV |
+
+## 16. 目录说明
 
 ```
 backend/          Spring Boot 2.7 + MyBatis-Plus
