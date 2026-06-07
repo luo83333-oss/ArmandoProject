@@ -4,6 +4,9 @@
       <div class="logo">商家后台</div>
       <el-menu router :default-active="$route.path">
         <el-menu-item index="/">首页</el-menu-item>
+        <el-menu-item index="/dashboard">数据看板</el-menu-item>
+        <el-menu-item index="/products">商品管理</el-menu-item>
+        <el-menu-item index="/orders">订单管理</el-menu-item>
       </el-menu>
     </el-aside>
     <el-main><router-view /></el-main>

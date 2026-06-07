@@ -260,7 +260,27 @@ Get-Content d:\Armando\backend\sql\V2__add_user_role.sql | docker compose exec -
 | POST | `/api/platform/rank/recalculate` | 全量重算排行 |
 | GET | `/api/platform/rank` | 管理端查看排行榜 |
 
-## 14. 目录说明
+## 14. Epic 2.3 联调流程（商家数据看板）
+
+基于本店已支付订单（待发货/已发货/已完成）聚合销售额与订单趋势。「下单用户」为去重买家数；独立访客埋点留待 V2。
+
+| 步骤 | 操作 |
+|------|------|
+| 1 | 使用已审核通过的商家账号登录商家后台 http://localhost:5184 |
+| 2 | 侧栏进入 **数据看板** |
+| 3 | 查看概览卡片：今日/累计销售额、有效订单、待发货、近7日下单用户 |
+| 4 | 切换 **近7天 / 近30天** 查看销售、订单量、下单用户趋势图 |
+
+### 看板 API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/merchant/stats/overview` | 概览指标（需商家登录） |
+| GET | `/api/merchant/stats/trend?days=7` | 日趋势，`days` 支持 7–90 |
+
+前端图表组件：`frontend/merchant-admin/src/components/BaseChart.vue`（ECharts 封装，总控台可复用）。
+
+## 15. 目录说明
 
 ```
 backend/          Spring Boot 2.7 + MyBatis-Plus
