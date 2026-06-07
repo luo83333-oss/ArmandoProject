@@ -9,6 +9,7 @@
       <van-button v-if="!user" round block type="primary" @click="$router.push('/login')">登录 / 注册</van-button>
       <van-button v-else round block type="danger" plain @click="onLogout">退出登录</van-button>
       <van-button round block type="primary" plain class="mt" @click="$router.push('/products')">逛商品</van-button>
+      <van-button round block plain class="mt" @click="$router.push('/shops/rank')">热门店铺榜</van-button>
       <van-button v-if="user" round block plain class="mt" @click="$router.push('/cart')">购物车</van-button>
       <van-button v-if="user" round block plain class="mt" @click="$router.push('/orders')">我的订单</van-button>
       <van-button round block plain class="mt" :loading="checking" @click="checkHealth">检测 API</van-button>

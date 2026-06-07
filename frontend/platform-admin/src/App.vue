@@ -6,6 +6,7 @@
         <el-menu-item index="/">商家审核</el-menu-item>
         <el-menu-item index="/users">用户管理</el-menu-item>
         <el-menu-item index="/orders">订单监管</el-menu-item>
+        <el-menu-item index="/rank">店铺排行</el-menu-item>
       </el-menu>
     </el-aside>
     <el-main><router-view /></el-main>

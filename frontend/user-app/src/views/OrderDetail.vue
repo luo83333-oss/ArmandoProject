@@ -1,6 +1,9 @@
 <template>
   <div class="page" v-if="order">
     <van-nav-bar title="订单详情" left-arrow @click-left="$router.back()" />
+    <van-notice-bar v-if="order.status === 10" color="#1989fa" background="#ecf9ff" left-icon="info-o">
+      订单待付款，请选择支付方式后完成支付
+    </van-notice-bar>
     <van-cell-group inset>
       <van-cell title="订单号" :value="order.orderNo" />
       <van-cell title="店铺" :value="order.shopName" />
@@ -51,7 +54,7 @@ const router = useRouter()
 const order = ref(null)
 const acting = ref(false)
 const channels = ref([])
-const payChannel = ref('mock')
+const payChannel = ref('wechat')
 const pendingPay = ref(null)
 
 const payButtonText = computed(() => {
@@ -67,15 +70,21 @@ async function load() {
 async function loadChannels() {
   try {
     channels.value = await listPaymentChannels()
-    if (channels.value.length && !channels.value.find(c => c.code === payChannel.value)) {
-      payChannel.value = channels.value[0].code
-    }
+    const prefer = channels.value.find(c => c.code === 'wechat') || channels.value[0]
+    if (prefer) payChannel.value = prefer.code
   } catch {
     channels.value = [{ code: 'mock', label: '模拟支付' }]
   }
 }
 
 async function onPay() {
+  if (payChannel.value === 'mock') {
+    try {
+      await showConfirmDialog({ title: '模拟支付', message: '模拟支付会立即完成，订单变为待发货。确定支付？' })
+    } catch {
+      return
+    }
+  }
   acting.value = true
   pendingPay.value = null
   try {

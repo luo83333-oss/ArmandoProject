@@ -4,6 +4,7 @@ import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 import Users from '../views/Users.vue'
 import Orders from '../views/Orders.vue'
+import Rank from '../views/Rank.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -11,7 +12,8 @@ const router = createRouter({
     { path: '/login', component: Login },
     { path: '/', component: Home, meta: { requiresAuth: true } },
     { path: '/users', component: Users, meta: { requiresAuth: true } },
-    { path: '/orders', component: Orders, meta: { requiresAuth: true } }
+    { path: '/orders', component: Orders, meta: { requiresAuth: true } },
+    { path: '/rank', component: Rank, meta: { requiresAuth: true } }
   ]
 })
 

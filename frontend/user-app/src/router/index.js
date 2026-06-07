@@ -8,6 +8,7 @@ import Cart from '../views/Cart.vue'
 import Checkout from '../views/Checkout.vue'
 import Orders from '../views/Orders.vue'
 import OrderDetail from '../views/OrderDetail.vue'
+import ShopRank from '../views/ShopRank.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -20,7 +21,8 @@ const router = createRouter({
     { path: '/cart', name: 'cart', component: Cart },
     { path: '/checkout', name: 'checkout', component: Checkout },
     { path: '/orders', name: 'orders', component: Orders },
-    { path: '/orders/:id', name: 'order-detail', component: OrderDetail }
+    { path: '/orders/:id', name: 'order-detail', component: OrderDetail },
+    { path: '/shops/rank', name: 'shop-rank', component: ShopRank }
   ]
 })
 

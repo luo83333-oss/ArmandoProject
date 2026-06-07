@@ -235,7 +235,32 @@ Get-Content d:\Armando\backend\sql\V2__add_user_role.sql | docker compose exec -
 | POST | `/api/payment/sandbox/complete` | 沙箱完成支付（需登录） |
 | POST | `/api/payment/callback/{channel}` | 第三方回调（幂等，无需登录） |
 
-## 13. 目录说明
+## 13. Epic 2.2 联调流程（店铺权重排行）
+
+权重公式：`权重分 = 有效订单数×销量权重 + 评价数×评价权重 − 违规商品数×违规扣分`
+
+有效订单 = 已支付及之后状态（待发货/已发货/已完成）。排行数据写入 Redis ZSET `market:shop:rank`，并快照到 `shop_rank_snapshot`。
+
+| 步骤 | 操作 |
+|------|------|
+| 1 | 确保已有商家订单（完成几笔支付/收货更佳） |
+| 2 | 总控台 http://localhost:5185 → **店铺排行** → **重新计算排行** |
+| 3 | 用户端首页 → **热门店铺榜** 查看排名 |
+| 4 | 可调整权重系数后再次重算，观察排名变化 |
+
+支付成功、确认收货后会自动刷新该店铺权重（增量更新 Redis）。
+
+### 排行 API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/shops/rank` | 用户端热门榜（公开） |
+| GET | `/api/platform/rank/config` | 权重配置（管理员） |
+| PUT | `/api/platform/rank/config` | 更新权重系数 |
+| POST | `/api/platform/rank/recalculate` | 全量重算排行 |
+| GET | `/api/platform/rank` | 管理端查看排行榜 |
+
+## 14. 目录说明
 
 ```
 backend/          Spring Boot 2.7 + MyBatis-Plus

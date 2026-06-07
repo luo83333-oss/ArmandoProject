@@ -27,6 +27,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/api/categories/**",
                         "/api/products",
                         "/api/products/**",
+                        "/api/shops/rank",
                         "/api/payment/callback/**"
                 );
     }

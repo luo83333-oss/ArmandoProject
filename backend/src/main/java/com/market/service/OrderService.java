@@ -53,6 +53,7 @@ public class OrderService {
     private final CartService cartService;
     private final MerchantShopService merchantShopService;
     private final OrderStateMachine orderStateMachine;
+    private final ShopRankService shopRankService;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -153,6 +154,7 @@ public class OrderService {
         order.setPaidAt(LocalDateTime.now());
         orderMapper.updateById(order);
         orderStateMachine.logTransition(orderId, from, OrderStatus.PAID.getCode(), "user", userId, "支付成功");
+        shopRankService.refreshShop(order.getShopId());
         return toVO(order);
     }
 
@@ -192,6 +194,7 @@ public class OrderService {
         order.setCompletedAt(LocalDateTime.now());
         orderMapper.updateById(order);
         orderStateMachine.logTransition(orderId, from, OrderStatus.COMPLETED.getCode(), "user", userId, "确认收货");
+        shopRankService.refreshShop(order.getShopId());
         return toVO(order);
     }
 
