@@ -301,7 +301,22 @@ Get-Content d:\Armando\backend\sql\V2__add_user_role.sql | docker compose exec -
 | GET | `/api/platform/stats/shops?days=30&limit=20` | 商家 GMV 排行 |
 | GET | `/api/platform/stats/shops/export?days=30` | 导出 CSV |
 
-## 16. 目录说明
+## 16. Epic 3.1 联调流程（H5 移动端适配）
+
+用户端 http://localhost:5183 已切换为 **底部 Tab 导航**（首页 / 分类 / 购物车 / 我的），PC 浏览器下内容区最大宽度 540px 居中。
+
+| 步骤 | 操作 |
+|------|------|
+| 1 | 手机浏览器或 Chrome 设备模拟（iPhone/Android）打开用户端 |
+| 2 | 首页：轮播、快捷入口、热门店铺预览 |
+| 3 | **分类** Tab：搜索、类目 Tab、下拉刷新、骨架屏加载 |
+| 4 | **购物车** Tab：侧滑删除、底部结算栏（适配 Tab 栏） |
+| 5 | **我的** Tab：订单、热榜入口；订单页支持状态 Tab + 下拉刷新 |
+| 6 | 商品详情：底部安全区购买栏 |
+
+布局文件：`frontend/user-app/src/layouts/MainLayout.vue`、`src/styles/app.css`。
+
+## 17. 目录说明
 
 ```
 backend/          Spring Boot 2.7 + MyBatis-Plus

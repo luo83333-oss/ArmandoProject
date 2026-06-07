@@ -2,7 +2,8 @@
   <div class="page">
     <van-nav-bar title="热门店铺榜" left-arrow @click-left="$router.back()" />
     <van-pull-refresh v-model="refreshing" @refresh="load">
-      <van-empty v-if="!loading && list.length === 0" description="暂无排行，请稍后重试" />
+      <van-skeleton v-if="loading && list.length === 0" title :row="5" />
+      <van-empty v-else-if="list.length === 0" description="暂无排行，请稍后重试" />
       <van-cell-group v-else inset>
         <van-cell v-for="item in list" :key="item.shopId" :title="`${item.rank}. ${item.shopName}`" :label="item.description || '优质商家'">
           <template #value>

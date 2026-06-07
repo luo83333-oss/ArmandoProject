@@ -17,12 +17,18 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { showSuccessToast, showFailToast } from 'vant'
 import { login, wechatLogin } from '../api/auth'
 import { setToken } from '../api/request'
 
+const route = useRoute()
 const router = useRouter()
+
+function afterLogin() {
+  const redirect = route.query.redirect
+  router.replace(typeof redirect === 'string' && redirect ? redirect : '/')
+}
 const loading = ref(false)
 const form = ref({ phone: '', password: '' })
 
@@ -32,7 +38,7 @@ async function onSubmit() {
     const data = await login(form.value)
     setToken(data.token)
     showSuccessToast('登录成功')
-    router.replace('/')
+    afterLogin()
   } catch (e) {
     showFailToast(e.message)
   } finally {
@@ -46,7 +52,7 @@ async function onWechat() {
     const data = await wechatLogin('mock_wx_code')
     setToken(data.token)
     showSuccessToast('微信登录成功')
-    router.replace('/')
+    afterLogin()
   } catch (e) {
     showFailToast(e.message)
   } finally {

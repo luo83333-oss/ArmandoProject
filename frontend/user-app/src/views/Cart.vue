@@ -1,6 +1,6 @@
 <template>
-  <div class="page">
-    <van-nav-bar title="购物车" left-arrow @click-left="$router.push('/')" />
+  <div class="page page--action-bar">
+    <van-nav-bar title="购物车" />
     <van-empty v-if="!loading && list.length === 0" description="购物车是空的">
       <van-button type="primary" @click="$router.push('/products')">去逛逛</van-button>
     </van-empty>
@@ -32,6 +32,8 @@
     </van-checkbox-group>
     <van-submit-bar
       v-if="list.length"
+      class="submit-bar--tabbar"
+      safe-area-inset-bottom
       :price="totalCents"
       button-text="去结算"
       @submit="onCheckout"
@@ -118,5 +120,4 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page { min-height: 100vh; background: #f7f8fa; padding-bottom: 60px; }
 </style>

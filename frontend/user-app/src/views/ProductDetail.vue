@@ -18,7 +18,7 @@
         @click="selectedSkuId = sku.id"
       />
     </van-cell-group>
-    <div class="bar">
+    <div class="fixed-action-bar">
       <van-button type="warning" @click="onAddCart">加入购物车</van-button>
       <van-button type="primary" @click="onBuyNow">立即购买</van-button>
     </div>
@@ -28,7 +28,10 @@
       </van-cell>
     </van-cell-group>
   </div>
-  <van-loading v-else class="loading" />
+  <div v-else class="page">
+    <van-nav-bar title="商品详情" left-arrow @click-left="$router.back()" />
+    <van-skeleton title avatar :row="5" style="padding: 16px" />
+  </div>
 </template>
 
 <script setup>
@@ -103,14 +106,12 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.page { min-height: 100vh; background: #f7f8fa; padding-bottom: 72px; }
-.bar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; gap: 8px; padding: 8px 16px; background: #fff; box-shadow: 0 -2px 8px rgba(0,0,0,.06); }
-.bar .van-button { flex: 1; }
+.page { min-height: 100vh; background: #f7f8fa; padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+.fixed-action-bar .van-button { flex: 1; }
 .active { background: #fff7e6; }
 .info { background: #fff; padding: 16px; margin-bottom: 12px; }
 .price { color: #ee0a24; font-size: 22px; font-weight: bold; }
 .title { font-size: 16px; margin-top: 8px; }
 .shop { color: #969799; font-size: 13px; margin-top: 4px; }
 .detail { white-space: pre-wrap; line-height: 1.6; }
-.loading { display: flex; justify-content: center; margin-top: 80px; }
 </style>

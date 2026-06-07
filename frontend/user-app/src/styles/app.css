@@ -1,0 +1,63 @@
+:root {
+  --app-max-width: 540px;
+  --tabbar-height: 50px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  min-height: 100%;
+  background: #ebedf0;
+}
+
+.app-shell {
+  min-height: 100vh;
+  margin: 0 auto;
+  max-width: var(--app-max-width);
+  background: #f7f8fa;
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.06);
+}
+
+.page {
+  min-height: 100vh;
+  background: #f7f8fa;
+}
+
+.page--tabbar {
+  padding-bottom: calc(var(--tabbar-height) + var(--safe-bottom));
+}
+
+.page--action-bar {
+  padding-bottom: calc(100px + var(--tabbar-height) + var(--safe-bottom));
+}
+
+.fixed-action-bar {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--app-max-width);
+  bottom: calc(var(--tabbar-height) + var(--safe-bottom));
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #fff;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+}
+
+.submit-bar--tabbar {
+  bottom: calc(var(--tabbar-height) + var(--safe-bottom)) !important;
+}
+
+@media (min-width: 768px) {
+  body {
+    background: #dfe1e6;
+  }
+}
