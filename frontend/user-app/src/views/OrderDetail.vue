@@ -14,8 +14,22 @@
     <van-cell-group inset title="商品" class="mt">
       <van-cell v-for="item in order.items" :key="item.id" :title="item.productTitle" :label="item.specJson" :value="`¥${item.unitPrice} x${item.quantity}`" />
     </van-cell-group>
+    <van-cell-group v-if="order.status === 10 && channels.length" inset title="支付方式" class="mt">
+      <van-radio-group v-model="payChannel">
+        <van-cell v-for="c in channels" :key="c.code" :title="c.label" clickable @click="payChannel = c.code">
+          <template #right-icon>
+            <van-radio :name="c.code" />
+          </template>
+        </van-cell>
+      </van-radio-group>
+    </van-cell-group>
     <div class="actions">
-      <van-button v-if="order.status === 10" round block type="primary" :loading="acting" @click="onPay">模拟支付</van-button>
+      <van-button v-if="order.status === 10" round block type="primary" :loading="acting" @click="onPay">
+        {{ payButtonText }}
+      </van-button>
+      <van-button v-if="pendingPay" round block type="warning" class="mt" :loading="acting" @click="onSandboxComplete">
+        完成沙箱支付
+      </van-button>
       <van-button v-if="order.status === 10" round block plain class="mt" :loading="acting" @click="onCancel">取消订单</van-button>
       <van-button v-if="order.status === 30" round block type="primary" :loading="acting" @click="onConfirm">确认收货</van-button>
       <van-button v-if="order.afterSaleAvailable" round block plain class="mt" disabled>申请售后（V2 开放）</van-button>
@@ -25,25 +39,72 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { showFailToast, showSuccessToast, showConfirmDialog } from 'vant'
-import { getOrder, mockPay, confirmReceive, cancelOrder } from '../api/order'
+import { getOrder, payOrder, confirmReceive, cancelOrder } from '../api/order'
+import { listPaymentChannels, completeSandboxPay } from '../api/payment'
 import { getToken } from '../api/request'
 
 const route = useRoute()
 const router = useRouter()
 const order = ref(null)
 const acting = ref(false)
+const channels = ref([])
+const payChannel = ref('mock')
+const pendingPay = ref(null)
+
+const payButtonText = computed(() => {
+  if (payChannel.value === 'mock') return '立即支付'
+  const c = channels.value.find(x => x.code === payChannel.value)
+  return c ? `唤起${c.label}` : '去支付'
+})
 
 async function load() {
   order.value = await getOrder(route.params.id)
 }
 
+async function loadChannels() {
+  try {
+    channels.value = await listPaymentChannels()
+    if (channels.value.length && !channels.value.find(c => c.code === payChannel.value)) {
+      payChannel.value = channels.value[0].code
+    }
+  } catch {
+    channels.value = [{ code: 'mock', label: '模拟支付' }]
+  }
+}
+
 async function onPay() {
   acting.value = true
+  pendingPay.value = null
   try {
-    order.value = await mockPay(route.params.id)
+    const result = await payOrder(route.params.id, payChannel.value)
+    if (result.status === 'success') {
+      order.value = result.order
+      showSuccessToast('支付成功，等待商家发货')
+    } else {
+      pendingPay.value = result
+      showSuccessToast(result.sandboxHint || '请完成沙箱支付')
+    }
+  } catch (e) {
+    showFailToast(e.message)
+  } finally {
+    acting.value = false
+  }
+}
+
+async function onSandboxComplete() {
+  if (!pendingPay.value) return
+  acting.value = true
+  try {
+    const result = await completeSandboxPay({
+      orderId: Number(route.params.id),
+      tradeNo: pendingPay.value.tradeNo,
+      channel: pendingPay.value.channel
+    })
+    order.value = result.order
+    pendingPay.value = null
     showSuccessToast('支付成功，等待商家发货')
   } catch (e) {
     showFailToast(e.message)
@@ -57,6 +118,7 @@ async function onCancel() {
     await showConfirmDialog({ title: '确认取消订单？' })
     acting.value = true
     order.value = await cancelOrder(route.params.id)
+    pendingPay.value = null
     showSuccessToast('订单已取消')
   } catch (e) {
     if (e !== 'cancel') showFailToast(e.message || '操作取消')
@@ -83,7 +145,7 @@ onMounted(async () => {
     return
   }
   try {
-    await load()
+    await Promise.all([load(), loadChannels()])
   } catch (e) {
     showFailToast(e.message)
   }

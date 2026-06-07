@@ -3,8 +3,11 @@ package com.market.controller;
 import com.market.common.Result;
 import com.market.dto.order.CheckoutRequest;
 import com.market.dto.order.OrderVO;
+import com.market.dto.payment.PayRequest;
+import com.market.dto.payment.PayResultVO;
 import com.market.security.UserContext;
 import com.market.service.OrderService;
+import com.market.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +22,7 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final PaymentService paymentService;
 
     @PostMapping("/checkout")
     public Result<List<OrderVO>> checkout(@Valid @RequestBody CheckoutRequest request) {
@@ -36,8 +40,10 @@ public class OrderController {
     }
 
     @PostMapping("/{id}/pay")
-    public Result<OrderVO> mockPay(@PathVariable Long id) {
-        return Result.ok(orderService.mockPay(UserContext.getUserId(), id));
+    public Result<PayResultVO> pay(@PathVariable Long id,
+                                   @RequestBody(required = false) @Valid PayRequest request) {
+        String channel = request != null && request.getChannel() != null ? request.getChannel() : "mock";
+        return Result.ok(paymentService.pay(UserContext.getUserId(), id, channel));
     }
 
     @PostMapping("/{id}/confirm")

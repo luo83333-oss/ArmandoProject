@@ -26,6 +26,11 @@ market:
   jwt:
     secret: market-dev-secret-change-in-production-32chars
     expire-hours: 72
+  payment:
+    mock-enabled: true
+    wechat-enabled: true
+    alipay-enabled: true
+    sandbox-secret: dev-sandbox-secret
 
 logging:
   level:

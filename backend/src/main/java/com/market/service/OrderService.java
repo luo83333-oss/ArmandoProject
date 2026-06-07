@@ -132,7 +132,7 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderVO mockPay(Long userId, Long orderId) {
+    public OrderVO completePayment(Long userId, Long orderId) {
         UserOrder order = requireUserOrder(userId, orderId);
         int from = order.getStatus();
         orderStateMachine.validateTransition(from, OrderStatus.PAID.getCode());
@@ -152,7 +152,7 @@ public class OrderService {
         order.setStatus(OrderStatus.PAID.getCode());
         order.setPaidAt(LocalDateTime.now());
         orderMapper.updateById(order);
-        orderStateMachine.logTransition(orderId, from, OrderStatus.PAID.getCode(), "user", userId, "模拟支付");
+        orderStateMachine.logTransition(orderId, from, OrderStatus.PAID.getCode(), "user", userId, "支付成功");
         return toVO(order);
     }
 

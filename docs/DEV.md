@@ -212,7 +212,30 @@ Get-Content d:\Armando\backend\sql\V2__add_user_role.sql | docker compose exec -
 
 入驻 → 发品上架 → 用户下单支付 → 商家发货 → 用户确认收货 → 总控台可查订单与用户。
 
-## 12. 目录说明
+## 12. Epic 2.1 联调流程（支付渠道）
+
+> 真实微信/支付宝需商户号；开发环境使用 **mock** 与 **wechat/alipay 沙箱** 流程。
+
+| 步骤 | 操作 |
+|------|------|
+| 1 | 用户端下单后进入订单详情 |
+| 2 | 选择支付方式：模拟支付 / 微信 / 支付宝 |
+| 3 | **模拟支付**：点击后立即成功，写入 `payment_record` |
+| 4 | **微信/支付宝沙箱**：点击「唤起支付」→ 再点「完成沙箱支付」模拟第三方回调 |
+| 5 | 支付成功后订单变为「待发货」，与 Epic 1.5 流程衔接 |
+
+配置见 `application.yml` → `market.payment`（`mock-enabled` / `wechat-enabled` / `alipay-enabled`）。
+
+### 支付 API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/payment/channels` | 可用支付渠道 |
+| POST | `/api/orders/{id}/pay` | 发起支付 `{ "channel": "mock\|wechat\|alipay" }` |
+| POST | `/api/payment/sandbox/complete` | 沙箱完成支付（需登录） |
+| POST | `/api/payment/callback/{channel}` | 第三方回调（幂等，无需登录） |
+
+## 13. 目录说明
 
 ```
 backend/          Spring Boot 2.7 + MyBatis-Plus

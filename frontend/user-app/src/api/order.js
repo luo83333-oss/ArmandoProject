@@ -15,8 +15,11 @@ export function getOrder(id) {
   return request(`/api/orders/${id}`)
 }
 
-export function mockPay(id) {
-  return request(`/api/orders/${id}/pay`, { method: 'POST' })
+export function payOrder(id, channel = 'mock') {
+  return request(`/api/orders/${id}/pay`, {
+    method: 'POST',
+    body: JSON.stringify({ channel })
+  })
 }
 
 export function confirmReceive(id) {
