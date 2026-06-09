@@ -36,7 +36,33 @@
       <van-button v-if="order.status === 10" round block plain class="mt" :loading="acting" @click="onCancel">取消订单</van-button>
       <van-button v-if="order.status === 30" round block type="primary" :loading="acting" @click="onConfirm">确认收货</van-button>
       <van-button v-if="order.afterSaleAvailable" round block plain class="mt" disabled>申请售后（V2 开放）</van-button>
+      <van-button
+        v-if="order.status === 40 && !order.reviewed"
+        round
+        block
+        type="primary"
+        class="mt"
+        @click="showReview = true"
+      >
+        评价订单
+      </van-button>
     </div>
+
+    <van-popup v-model:show="showReview" position="bottom" round :style="{ padding: '16px 16px 24px' }">
+      <div class="review-title">订单评价</div>
+      <van-rate v-model="reviewRating" :size="28" color="#ffd21e" void-icon="star" void-color="#eee" />
+      <van-field
+        v-model="reviewContent"
+        rows="3"
+        autosize
+        type="textarea"
+        maxlength="1024"
+        show-word-limit
+        placeholder="说说本次购物体验（选填）"
+        class="review-field"
+      />
+      <van-button round block type="primary" :loading="acting" @click="onSubmitReview">提交评价</van-button>
+    </van-popup>
   </div>
   <van-loading v-else class="loading" />
 </template>
@@ -45,7 +71,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { showFailToast, showSuccessToast, showConfirmDialog } from 'vant'
-import { getOrder, payOrder, confirmReceive, cancelOrder } from '../api/order'
+import { getOrder, payOrder, confirmReceive, cancelOrder, submitReview } from '../api/order'
 import { listPaymentChannels, completeSandboxPay } from '../api/payment'
 import { getToken } from '../api/request'
 
@@ -56,6 +82,9 @@ const acting = ref(false)
 const channels = ref([])
 const payChannel = ref('wechat')
 const pendingPay = ref(null)
+const showReview = ref(false)
+const reviewRating = ref(5)
+const reviewContent = ref('')
 
 const payButtonText = computed(() => {
   if (payChannel.value === 'mock') return '立即支付'
@@ -136,6 +165,27 @@ async function onCancel() {
   }
 }
 
+async function onSubmitReview() {
+  if (!reviewRating.value) {
+    showFailToast('请选择评分')
+    return
+  }
+  acting.value = true
+  try {
+    await submitReview(route.params.id, {
+      rating: reviewRating.value,
+      content: reviewContent.value?.trim() || undefined
+    })
+    showReview.value = false
+    await load()
+    showSuccessToast('评价成功')
+  } catch (e) {
+    showFailToast(e.message)
+  } finally {
+    acting.value = false
+  }
+}
+
 async function onConfirm() {
   acting.value = true
   try {
@@ -166,4 +216,6 @@ onMounted(async () => {
 .mt { margin-top: 12px; }
 .actions { margin: 24px 16px; }
 .loading { display: flex; justify-content: center; margin-top: 80px; }
+.review-title { font-size: 16px; font-weight: 600; margin-bottom: 12px; text-align: center; }
+.review-field { margin: 12px 0 16px; }
 </style>

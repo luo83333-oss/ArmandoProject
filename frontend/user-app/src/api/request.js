@@ -17,10 +17,28 @@ export async function request(url, options = {}) {
   const token = getToken()
   if (token) headers.Authorization = `Bearer ${token}`
 
-  const res = await fetch(url, { ...options, headers })
-  const json = await res.json()
+  let res
+  try {
+    res = await fetch(url, { ...options, headers })
+  } catch {
+    throw new Error('网络异常，请确认后端已启动（8082）')
+  }
+
+  let json
+  try {
+    json = await res.json()
+  } catch {
+    throw new Error(`接口响应异常 (HTTP ${res.status})`)
+  }
+
   if (json.code !== 0) {
-    throw new Error(json.message || '请求失败')
+    const msg = json.message || json.error
+    if (msg) throw new Error(msg)
+    if (json.code === 401 || res.status === 401) {
+      clearToken()
+      throw new Error('未登录或登录已过期，请重新登录')
+    }
+    throw new Error(`请求失败 (HTTP ${res.status}${json.path ? ` ${json.path}` : ''})`)
   }
   return json.data
 }

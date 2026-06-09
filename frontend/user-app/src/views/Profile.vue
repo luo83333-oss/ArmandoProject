@@ -15,6 +15,8 @@
 
     <van-cell-group inset class="mt">
       <van-cell title="我的订单" is-link icon="orders-o" @click="goOrders" />
+      <van-cell title="我的收藏" is-link icon="star-o" @click="goFavorites" />
+      <van-cell title="我的关注" is-link icon="like-o" @click="goFollowing" />
       <van-cell title="热门店铺榜" is-link icon="shop-o" @click="$router.push('/shops/rank')" />
       <van-cell title="购物车" is-link icon="shopping-cart-o" @click="goCart" />
     </van-cell-group>
@@ -60,6 +62,22 @@ function goCart() {
     return
   }
   router.push('/cart')
+}
+
+function goFavorites() {
+  if (!getToken()) {
+    router.push('/login')
+    return
+  }
+  router.push('/favorites')
+}
+
+function goFollowing() {
+  if (!getToken()) {
+    router.push('/login')
+    return
+  }
+  router.push('/following')
 }
 
 function onLogout() {

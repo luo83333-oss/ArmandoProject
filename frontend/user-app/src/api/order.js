@@ -29,3 +29,10 @@ export function confirmReceive(id) {
 export function cancelOrder(id) {
   return request(`/api/orders/${id}/cancel`, { method: 'POST' })
 }
+
+export function submitReview(id, { rating, content }) {
+  return request(`/api/orders/${id}/review`, {
+    method: 'POST',
+    body: JSON.stringify({ rating, content })
+  })
+}

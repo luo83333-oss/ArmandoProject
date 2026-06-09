@@ -10,6 +10,8 @@ import Checkout from '../views/Checkout.vue'
 import Orders from '../views/Orders.vue'
 import OrderDetail from '../views/OrderDetail.vue'
 import ShopRank from '../views/ShopRank.vue'
+import Favorites from '../views/Favorites.vue'
+import Following from '../views/Following.vue'
 import Profile from '../views/Profile.vue'
 import { getToken } from '../api/request'
 
@@ -32,7 +34,9 @@ const router = createRouter({
     { path: '/checkout', name: 'checkout', component: Checkout, meta: { requiresAuth: true } },
     { path: '/orders', name: 'orders', component: Orders, meta: { requiresAuth: true } },
     { path: '/orders/:id', name: 'order-detail', component: OrderDetail, meta: { requiresAuth: true } },
-    { path: '/shops/rank', name: 'shop-rank', component: ShopRank }
+    { path: '/shops/rank', name: 'shop-rank', component: ShopRank },
+    { path: '/favorites', name: 'favorites', component: Favorites, meta: { requiresAuth: true } },
+    { path: '/following', name: 'following', component: Following, meta: { requiresAuth: true } }
   ]
 })
 

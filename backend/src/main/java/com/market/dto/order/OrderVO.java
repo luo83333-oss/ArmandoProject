@@ -29,4 +29,6 @@ public class OrderVO {
     private LocalDateTime createdAt;
     /** 售后入口占位：已完成订单可展示 */
     private Boolean afterSaleAvailable;
+    /** 是否已评价 */
+    private Boolean reviewed;
 }

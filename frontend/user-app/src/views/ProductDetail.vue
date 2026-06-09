@@ -1,6 +1,10 @@
 <template>
   <div class="page" v-if="product">
-    <van-nav-bar title="商品详情" left-arrow @click-left="$router.back()" />
+    <van-nav-bar title="商品详情" left-arrow @click-left="$router.back()">
+      <template #right>
+        <van-icon :name="favorited ? 'star' : 'star-o'" :color="favorited ? '#ee0a24' : undefined" size="20" @click="onToggleFavorite" />
+      </template>
+    </van-nav-bar>
     <ProductGallery :images="imageList" />
     <div class="info">
       <div class="price">¥{{ minPrice }}</div>
@@ -41,6 +45,7 @@ import { useRouter } from 'vue-router'
 import { showFailToast, showSuccessToast } from 'vant'
 import { getProduct } from '../api/product'
 import { addToCart, updateCartItem, listCart } from '../api/cart'
+import { getFavoriteStatus, addFavorite, removeFavorite } from '../api/favorite'
 import { getToken } from '../api/request'
 import ProductGallery from '../components/ProductGallery.vue'
 
@@ -48,6 +53,7 @@ const route = useRoute()
 const router = useRouter()
 const product = ref(null)
 const selectedSkuId = ref(null)
+const favorited = ref(false)
 
 const minPrice = computed(() => {
   if (!product.value?.minPrice) return '0.00'
@@ -90,6 +96,36 @@ async function onAddCart() {
   }
 }
 
+async function loadFavoriteStatus() {
+  if (!getToken() || !product.value?.id) return
+  try {
+    const status = await getFavoriteStatus(product.value.id)
+    favorited.value = !!status.favorited
+  } catch {
+    favorited.value = false
+  }
+}
+
+async function onToggleFavorite() {
+  if (!requireLogin() || !product.value?.id) return
+  try {
+    if (favorited.value) {
+      await removeFavorite(product.value.id)
+      favorited.value = false
+      showSuccessToast('已取消收藏')
+    } else {
+      await addFavorite(product.value.id)
+      favorited.value = true
+      showSuccessToast('已收藏')
+    }
+  } catch (e) {
+    showFailToast(e.message)
+    if (e.message?.includes('登录')) {
+      router.push('/login')
+    }
+  }
+}
+
 async function onBuyNow() {
   if (!requireLogin() || !requireSku()) return
   try {
@@ -110,6 +146,7 @@ onMounted(async () => {
     if (product.value?.skus?.length) {
       selectedSkuId.value = product.value.skus[0].id
     }
+    await loadFavoriteStatus()
   } catch (e) {
     showFailToast(e.message)
   }

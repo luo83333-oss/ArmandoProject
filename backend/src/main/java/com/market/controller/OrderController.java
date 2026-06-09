@@ -1,6 +1,8 @@
 package com.market.controller;
 
 import com.market.common.Result;
+import com.market.dto.engagement.ReviewSubmitRequest;
+import com.market.dto.engagement.ReviewVO;
 import com.market.dto.order.CheckoutRequest;
 import com.market.dto.order.OrderVO;
 import com.market.dto.payment.PayRequest;
@@ -8,6 +10,7 @@ import com.market.dto.payment.PayResultVO;
 import com.market.security.UserContext;
 import com.market.service.OrderService;
 import com.market.service.PaymentService;
+import com.market.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +26,7 @@ public class OrderController {
 
     private final OrderService orderService;
     private final PaymentService paymentService;
+    private final ReviewService reviewService;
 
     @PostMapping("/checkout")
     public Result<List<OrderVO>> checkout(@Valid @RequestBody CheckoutRequest request) {
@@ -54,5 +58,10 @@ public class OrderController {
     @PostMapping("/{id}/cancel")
     public Result<OrderVO> cancel(@PathVariable Long id) {
         return Result.ok(orderService.cancel(UserContext.getUserId(), id));
+    }
+
+    @PostMapping("/{id}/review")
+    public Result<ReviewVO> review(@PathVariable Long id, @Valid @RequestBody ReviewSubmitRequest request) {
+        return Result.ok(reviewService.submit(UserContext.getUserId(), id, request));
     }
 }

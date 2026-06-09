@@ -365,7 +365,42 @@ docker exec -i market-mysql mysql -umarket -pmarket_pass market < backend/sql/V3
 | POST/PUT | `/api/merchant/products` | `mainImageUrl` + `galleryUrls[]`（辅图 ≤5） |
 | GET | `/api/products/{id}` | 详情含 `galleryUrls` |
 
-## 18. 目录说明
+## 18. Epic 3.2 联调流程（店铺关注 / 商品收藏 / 订单评价）
+
+对应 Linear：NL2-140（Epic）、NL2-151（关注）、NL2-154（收藏）、NL2-153（评价）。表已在 `V1__init_schema.sql`：`user_shop_follow`、`user_favorite`、`product_review`。
+
+### 相关 API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/favorites` | 我的收藏列表 |
+| GET | `/api/favorites/products/{id}/status` | 是否已收藏 |
+| POST/DELETE | `/api/favorites/products/{id}` | 收藏 / 取消收藏 |
+| GET | `/api/shops/following` | 我的关注店铺 |
+| GET | `/api/shops/{id}/followed` | 是否已关注 |
+| POST/DELETE | `/api/shops/{id}/follow` | 关注 / 取关 |
+| POST | `/api/orders/{id}/review` | 已完成订单评价 `{ rating, content? }` |
+
+订单详情 `OrderVO` 新增 `reviewed` 字段；评价后调用 `ShopRankService.refreshShop` 更新店铺热度。
+
+### 联调步骤
+
+| 步骤 | 操作 |
+|------|------|
+| 1 | 启动 Docker + 后端 8082 + 用户端 5183 |
+| 2 | 用户登录 → 商品详情右上角星标收藏 → **我的 → 我的收藏** 可见 |
+| 3 | **热门店铺榜** 点击「关注」→ **我的 → 我的关注** 可见 |
+| 4 | 完成一笔订单并确认收货 → 订单详情「评价订单」→ 星级 + 文字提交 |
+| 5 | 再次进入该订单，评价按钮消失（`reviewed=true`） |
+
+### 前端入口
+
+- `Profile.vue`：我的收藏、我的关注
+- `ProductDetail.vue`：导航栏收藏星标
+- `ShopRank.vue`：店铺行内关注按钮
+- `OrderDetail.vue`：已完成未评价订单弹出评价面板
+
+## 19. 目录说明
 
 ```
 backend/          Spring Boot 2.7 + MyBatis-Plus

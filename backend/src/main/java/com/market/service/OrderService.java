@@ -54,6 +54,7 @@ public class OrderService {
     private final MerchantShopService merchantShopService;
     private final OrderStateMachine orderStateMachine;
     private final ShopRankService shopRankService;
+    private final ReviewService reviewService;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -291,6 +292,7 @@ public class OrderService {
                 .completedAt(order.getCompletedAt())
                 .createdAt(order.getCreatedAt())
                 .afterSaleAvailable(order.getStatus() == OrderStatus.COMPLETED.getCode())
+                .reviewed(reviewService.hasReview(order.getId()))
                 .build();
     }
 
