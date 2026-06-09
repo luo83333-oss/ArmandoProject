@@ -2,7 +2,9 @@
   <div class="page page--tabbar">
     <van-nav-bar title="我的" />
     <div v-if="user" class="header">
-      <van-image round width="56" height="56" :src="avatarUrl" />
+      <van-badge :content="messageBadge" :show-zero="false" max="99" class="avatar-badge">
+        <van-image round width="56" height="56" :src="avatarUrl" />
+      </van-badge>
       <div class="info">
         <div class="name">{{ user.nickname }}</div>
         <div class="phone">{{ user.phone }}</div>
@@ -15,7 +17,13 @@
 
     <van-cell-group inset class="mt">
       <van-cell title="我的订单" is-link icon="orders-o" @click="goOrders" />
-      <van-cell title="我的消息" is-link icon="chat-o" :badge="unreadBadge" @click="goMessages" />
+      <van-cell title="我的消息" is-link @click="goMessages">
+        <template #icon>
+          <van-badge :content="messageBadge" :show-zero="false" max="99" class="msg-icon-badge">
+            <van-icon name="chat-o" class="cell-icon" />
+          </van-badge>
+        </template>
+      </van-cell>
       <van-cell title="我的收藏" is-link icon="star-o" @click="goFavorites" />
       <van-cell title="我的关注" is-link icon="like-o" @click="goFollowing" />
       <van-cell title="热门店铺榜" is-link icon="shop-o" @click="$router.push('/shops/rank')" />
@@ -29,33 +37,44 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import { showFailToast } from 'vant'
 import { getMe } from '../api/auth'
-import { getUnreadCount } from '../api/message'
+import { useUnreadMessages } from '../composables/useUnreadMessages'
 import { clearToken, getToken } from '../api/request'
 
 const router = useRouter()
 const user = ref(null)
-const unreadCount = ref(0)
 const avatarUrl = 'https://fastly.jsdelivr.net/npm/@vant/assets/cat.jpeg'
+const { unreadCount, refresh: refreshUnread, badgeText } = useUnreadMessages()
 
-const unreadBadge = computed(() => {
-  if (!unreadCount.value) return ''
-  return unreadCount.value > 99 ? '99+' : String(unreadCount.value)
-})
+const messageBadge = computed(() => badgeText())
+
+function isAuthError(message) {
+  return message?.includes('登录') || message?.includes('401')
+}
 
 async function load() {
-  if (!getToken()) return
+  if (!getToken()) {
+    user.value = null
+    unreadCount.value = 0
+    return
+  }
   try {
     user.value = await getMe()
-    const result = await getUnreadCount()
-    unreadCount.value = Number(result?.count || 0)
   } catch (e) {
+    if (isAuthError(e.message)) {
+      clearToken()
+      user.value = null
+      unreadCount.value = 0
+      showFailToast(e.message)
+      return
+    }
     showFailToast(e.message)
-    clearToken()
+    return
   }
+  await refreshUnread()
 }
 
 function goOrders() {
@@ -104,6 +123,7 @@ function onLogout() {
 }
 
 onMounted(load)
+onActivated(load)
 </script>
 
 <style scoped>
@@ -121,4 +141,16 @@ onMounted(load)
 .phone { font-size: 13px; opacity: 0.9; margin-top: 4px; }
 .mt { margin-top: 12px; }
 .login-btn { margin: 12px 16px 4px; }
+.avatar-badge :deep(.van-badge--top-right) {
+  transform: translate(20%, -20%);
+}
+.msg-icon-badge {
+  margin-right: 4px;
+  display: inline-flex;
+  align-items: center;
+}
+.cell-icon {
+  font-size: 18px;
+  color: #323233;
+}
 </style>

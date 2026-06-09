@@ -438,7 +438,38 @@ docker exec -i market-mysql mysql -umarket -pmarket_pass market < backend/sql/V3
 - `Profile.vue`：我的消息（未读角标）
 - `Messages.vue`：列表、详情弹层、全部已读、查看订单
 
-## 20. 目录说明
+## 20. Epic 4.1 测试（NL2-145）
+
+对应 Linear：NL2-145（Epic）、NL2-152（用例）、NL2-163（安全）、NL2-164（压测，可选）。
+
+### 文档
+
+| 文件 | 说明 |
+|------|------|
+| `docs/testing/E2E_TEST_CASES.md` | 三端 + API 功能/边界用例（可打印勾选） |
+| `docs/testing/SECURITY_CHECKLIST.md` | 鉴权、IDOR、商家隔离、注入 |
+
+### 自动化
+
+```powershell
+# 集成测试（自动跳过：Docker/MySQL/Redis 未就绪时）
+cd d:\Armando\backend
+.\mvnw.cmd test
+
+# 对已运行后端快速冒烟（8082）
+cd d:\Armando
+.\scripts\api-smoke-test.ps1
+```
+
+集成测试类：`HealthApiIT`、`SecurityApiIT`、`IdorApiIT`（`src/test/java/com/market/api/`）。
+
+CI：`.github/workflows/ci.yml` 在 push `develop` 时启动 MySQL/Redis 并执行 `mvn test`。
+
+### 手工全链路建议顺序
+
+1. 跑自动化 → 2. 按 `E2E_TEST_CASES.md` 冒烟 S-01~S-05 → 3. 章节 1~8 回归 → 4. `SECURITY_CHECKLIST.md` 商家隔离（SEC-30~32）手工项。
+
+## 21. 目录说明
 
 ```
 backend/          Spring Boot 2.7 + MyBatis-Plus

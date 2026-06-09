@@ -1,26 +1,52 @@
 <template>
   <div class="main-layout">
-    <router-view />
-    <van-tabbar v-if="showTabbar" route safe-area-inset-bottom>
-      <van-tabbar-item replace to="/" icon="home-o">首页</van-tabbar-item>
-      <van-tabbar-item replace to="/products" icon="apps-o">分类</van-tabbar-item>
-      <van-tabbar-item replace to="/cart" icon="shopping-cart-o" :badge="cartBadge || ''">购物车</van-tabbar-item>
-      <van-tabbar-item replace to="/profile" icon="user-o">我的</van-tabbar-item>
+    <router-view :key="route.fullPath" />
+    <van-tabbar v-if="showTabbar" v-model="activeTab" safe-area-inset-bottom @change="onTabChange">
+      <van-tabbar-item icon="home-o">首页</van-tabbar-item>
+      <van-tabbar-item icon="apps-o">分类</van-tabbar-item>
+      <van-tabbar-item icon="shopping-cart-o" :badge="cartBadge || ''">购物车</van-tabbar-item>
+      <van-tabbar-item icon="user-o" :badge="messageBadge || ''">我的</van-tabbar-item>
     </van-tabbar>
   </div>
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { listCart } from '../api/cart'
+import { useUnreadMessages } from '../composables/useUnreadMessages'
 import { getToken } from '../api/request'
 
 const route = useRoute()
+const router = useRouter()
 const cartCount = ref(0)
+const activeTab = ref(0)
+const { refresh: refreshUnread, badgeText } = useUnreadMessages()
+
+const TAB_ROUTES = ['home', 'products', 'cart', 'profile']
 
 const showTabbar = computed(() => route.meta.showTabbar === true)
 const cartBadge = computed(() => (cartCount.value > 0 ? String(cartCount.value) : ''))
+const messageBadge = computed(() => badgeText())
+
+watch(
+  () => route.name,
+  (name) => {
+    const idx = TAB_ROUTES.indexOf(name)
+    if (idx >= 0) activeTab.value = idx
+  },
+  { immediate: true }
+)
+
+function onTabChange(index) {
+  const name = TAB_ROUTES[index]
+  if (!name) return
+  if (route.name === name) {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    return
+  }
+  router.replace({ name })
+}
 
 async function refreshCartBadge() {
   if (!getToken()) {
@@ -35,5 +61,9 @@ async function refreshCartBadge() {
   }
 }
 
-watch(() => route.fullPath, refreshCartBadge, { immediate: true })
+async function refreshBadges() {
+  await Promise.all([refreshCartBadge(), refreshUnread()])
+}
+
+watch(() => route.fullPath, refreshBadges, { immediate: true })
 </script>

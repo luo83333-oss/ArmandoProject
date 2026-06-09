@@ -44,7 +44,10 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { showFailToast, showSuccessToast } from 'vant'
 import { listMessages, markMessageRead, markAllMessagesRead } from '../api/message'
+import { useUnreadMessages } from '../composables/useUnreadMessages'
 import { getToken } from '../api/request'
+
+const { refresh: refreshUnread } = useUnreadMessages()
 
 const router = useRouter()
 const list = ref([])
@@ -77,6 +80,7 @@ async function openMessage(item) {
     try {
       const updated = await markMessageRead(item.id)
       item.read = updated.read
+      await refreshUnread()
     } catch (e) {
       showFailToast(e.message)
     }
@@ -89,6 +93,7 @@ async function onReadAll() {
     for (const item of list.value) {
       item.read = true
     }
+    await refreshUnread()
     showSuccessToast('已全部标为已读')
   } catch (e) {
     showFailToast(e.message)
