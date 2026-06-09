@@ -10,8 +10,10 @@ import com.market.dto.product.ProductSaveRequest;
 import com.market.dto.product.ProductVO;
 import com.market.dto.product.SkuRequest;
 import com.market.entity.Product;
+import com.market.entity.ProductImage;
 import com.market.entity.ProductSku;
 import com.market.entity.Shop;
+import com.market.mapper.ProductImageMapper;
 import com.market.mapper.ProductMapper;
 import com.market.mapper.ProductSkuMapper;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,6 +32,7 @@ public class MerchantProductService {
 
     private final ProductMapper productMapper;
     private final ProductSkuMapper skuMapper;
+    private final ProductImageMapper productImageMapper;
     private final MerchantShopService merchantShopService;
     private final CategoryService categoryService;
     private final ProductHelper productHelper;
@@ -76,6 +80,7 @@ public class MerchantProductService {
         product.setViolationFlag(0);
         productMapper.insert(product);
         saveSkus(product.getId(), request.getSkus());
+        saveGallery(product.getId(), request.getMainImageUrl(), request.getGalleryUrls());
         return productHelper.toDetailVO(product, productHelper.loadSkus(product.getId()));
     }
 
@@ -93,6 +98,7 @@ public class MerchantProductService {
 
         skuMapper.delete(new LambdaQueryWrapper<ProductSku>().eq(ProductSku::getProductId, productId));
         saveSkus(productId, request.getSkus());
+        saveGallery(productId, request.getMainImageUrl(), request.getGalleryUrls());
         return productHelper.toDetailVO(productMapper.selectById(productId), productHelper.loadSkus(productId));
     }
 
@@ -101,6 +107,7 @@ public class MerchantProductService {
         Shop shop = merchantShopService.requireApprovedShop(userId);
         requireShopProduct(shop.getId(), productId);
         skuMapper.delete(new LambdaQueryWrapper<ProductSku>().eq(ProductSku::getProductId, productId));
+        productImageMapper.delete(new LambdaQueryWrapper<ProductImage>().eq(ProductImage::getProductId, productId));
         productMapper.deleteById(productId);
     }
 
@@ -137,5 +144,42 @@ public class MerchantProductService {
             sku.setStatus(1);
             skuMapper.insert(sku);
         }
+    }
+
+    private void saveGallery(Long productId, String mainImageUrl, List<String> galleryUrls) {
+        List<String> auxUrls = normalizeGalleryUrls(galleryUrls);
+        productImageMapper.delete(new LambdaQueryWrapper<ProductImage>().eq(ProductImage::getProductId, productId));
+        if (StringUtils.hasText(mainImageUrl)) {
+            ProductImage main = new ProductImage();
+            main.setProductId(productId);
+            main.setUrl(mainImageUrl.trim());
+            main.setSortOrder(0);
+            productImageMapper.insert(main);
+        }
+        int order = 1;
+        for (String url : auxUrls) {
+            ProductImage image = new ProductImage();
+            image.setProductId(productId);
+            image.setUrl(url);
+            image.setSortOrder(order++);
+            productImageMapper.insert(image);
+        }
+    }
+
+    private List<String> normalizeGalleryUrls(List<String> galleryUrls) {
+        if (galleryUrls == null || galleryUrls.isEmpty()) {
+            return List.of();
+        }
+        List<String> result = new ArrayList<>();
+        for (String url : galleryUrls) {
+            if (!StringUtils.hasText(url)) {
+                continue;
+            }
+            result.add(url.trim());
+            if (result.size() >= 5) {
+                break;
+            }
+        }
+        return result;
     }
 }

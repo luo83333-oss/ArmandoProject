@@ -18,6 +18,8 @@ public class ProductVO {
     private String categoryName;
     private String title;
     private String mainImageUrl;
+    /** 辅图 URL 列表，不含主图 */
+    private List<String> galleryUrls;
     private String detailHtml;
     private Integer shelfStatus;
     private Integer violationFlag;

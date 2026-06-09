@@ -316,7 +316,56 @@ Get-Content d:\Armando\backend\sql\V2__add_user_role.sql | docker compose exec -
 
 布局文件：`frontend/user-app/src/layouts/MainLayout.vue`、`src/styles/app.css`。
 
-## 17. 目录说明
+## 17. NL2-197 联调流程（商品主图 + 5 辅图本地上传）
+
+商家端将「主图 URL」文本框替换为 **1 主图 + 5 辅图** 拖拽上传；用户端商品详情以轮播展示全部图片。
+
+### 数据库迁移
+
+在已有库上手动执行（Docker MySQL 示例）：
+
+```bash
+docker exec -i market-mysql mysql -umarket -pmarket_pass market < backend/sql/V3__product_gallery.sql
+```
+
+### 上传说明
+
+| 项 | 值 |
+|----|-----|
+| 接口 | `POST /api/merchant/upload`（商家登录，字段 `file`） |
+| 格式 | JPEG / PNG / WebP |
+| 大小 | ≤ 2MB |
+| 存储 | `backend/uploads/yyyy/MM/uuid.ext` |
+| 访问 | `http://localhost:8082/uploads/...` |
+
+前端 dev 已代理 `/uploads` → 8082，商家端与用户端均可直接显示相对路径图片。
+
+### 联调步骤
+
+| 步骤 | 操作 |
+|------|------|
+| 1 | 启动 Docker + 后端 + 商家端 http://localhost:5184 |
+| 2 | 商家登录 → 发布/编辑商品 → 拖拽上传主图与辅图 → 保存 |
+| 3 | 用户端 http://localhost:5183 打开该商品详情，确认轮播 |
+| 4 | 多图时：每 **3 秒** 自动轮播，角标 `1/3` 同步；**点击图片** 全屏预览（可缩放、左右滑） |
+| 5 | 真机：商家端 `npm run dev -- --host`，图片 URL 走 `http://<IP>:8082/uploads/...` |
+
+### 用户端图库组件
+
+- 文件：`frontend/user-app/src/components/ProductGallery.vue`
+- 数据：`imageList` = `[mainImageUrl, ...galleryUrls]` 去重
+- 轮播：`van-swipe`，多图时 `autoplay=3000`、`loop`、底部圆点
+- 预览：`showImagePreview`，从当前索引打开
+
+### 相关 API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/merchant/upload` | 上传单张图片，返回 `{ url }` |
+| POST/PUT | `/api/merchant/products` | `mainImageUrl` + `galleryUrls[]`（辅图 ≤5） |
+| GET | `/api/products/{id}` | 详情含 `galleryUrls` |
+
+## 18. 目录说明
 
 ```
 backend/          Spring Boot 2.7 + MyBatis-Plus

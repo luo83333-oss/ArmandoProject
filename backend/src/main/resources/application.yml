@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: market-api
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
   datasource:
     url: jdbc:mysql://localhost:3306/market?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
     username: market
@@ -26,6 +30,10 @@ market:
   jwt:
     secret: market-dev-secret-change-in-production-32chars
     expire-hours: 72
+  upload:
+    dir: uploads
+    base-url: /uploads
+    max-size-bytes: 2097152
   payment:
     mock-enabled: true
     wechat-enabled: true

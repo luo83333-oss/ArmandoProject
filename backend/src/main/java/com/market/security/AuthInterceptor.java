@@ -1,6 +1,8 @@
 package com.market.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.market.common.BusinessException;
+import com.market.common.Result;
 import com.market.common.ResultCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -12,18 +14,22 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
 public class AuthInterceptor implements HandlerInterceptor {
 
     private final JwtUtil jwtUtil;
+    private final ObjectMapper objectMapper;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws IOException {
         String auth = request.getHeader("Authorization");
         if (!StringUtils.hasText(auth) || !auth.startsWith("Bearer ")) {
-            throw new BusinessException(ResultCode.UNAUTHORIZED);
+            writeError(response, new BusinessException(ResultCode.UNAUTHORIZED));
+            return false;
         }
         String token = auth.substring(7);
         try {
@@ -34,10 +40,19 @@ public class AuthInterceptor implements HandlerInterceptor {
             UserContext.set(new LoginUser(userId, phone, role));
             return true;
         } catch (ExpiredJwtException e) {
-            throw new BusinessException(ResultCode.UNAUTHORIZED);
+            writeError(response, new BusinessException(ResultCode.UNAUTHORIZED));
+            return false;
         } catch (JwtException | NumberFormatException e) {
-            throw new BusinessException(ResultCode.UNAUTHORIZED);
+            writeError(response, new BusinessException(ResultCode.UNAUTHORIZED));
+            return false;
         }
+    }
+
+    private void writeError(HttpServletResponse response, BusinessException ex) throws IOException {
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(objectMapper.writeValueAsString(
+                Result.fail(ex.getCode(), ex.getMessage())));
     }
 
     @Override

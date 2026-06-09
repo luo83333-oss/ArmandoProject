@@ -11,8 +11,11 @@
             <el-option v-for="c in flatCategories" :key="c.id" :label="c.label" :value="c.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="主图 URL">
-          <el-input v-model="form.mainImageUrl" placeholder="图片链接" />
+        <el-form-item label="商品图片" required>
+          <ProductImageUploader
+            v-model:main-image-url="form.mainImageUrl"
+            v-model:gallery-urls="form.galleryUrls"
+          />
         </el-form-item>
         <el-form-item label="详情">
           <el-input v-model="form.detailHtml" type="textarea" :rows="4" />
@@ -41,6 +44,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { listCategories, getProduct, createProduct, updateProduct } from '../api/product'
 import { getToken } from '../api/request'
+import ProductImageUploader from '../components/ProductImageUploader.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -50,6 +54,7 @@ const form = ref({
   title: '',
   categoryId: null,
   mainImageUrl: '',
+  galleryUrls: [],
   detailHtml: '',
   skus: [{ specJson: '{"默认":"标准"}', price: 9.9, stock: 100 }]
 })
@@ -82,6 +87,7 @@ async function loadProduct() {
     title: data.title,
     categoryId: data.categoryId,
     mainImageUrl: data.mainImageUrl || '',
+    galleryUrls: data.galleryUrls || [],
     detailHtml: data.detailHtml || '',
     skus: data.skus.map(s => ({
       specJson: s.specJson,
@@ -93,8 +99,8 @@ async function loadProduct() {
 }
 
 async function onSubmit() {
-  if (!form.value.title || !form.value.categoryId || !form.value.skus.length) {
-    ElMessage.warning('请填写完整信息')
+  if (!form.value.title || !form.value.categoryId || !form.value.mainImageUrl || !form.value.skus.length) {
+    ElMessage.warning('请填写完整信息（含主图）')
     return
   }
   loading.value = true

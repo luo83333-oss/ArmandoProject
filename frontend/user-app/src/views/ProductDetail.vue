@@ -1,7 +1,7 @@
 <template>
   <div class="page" v-if="product">
     <van-nav-bar title="商品详情" left-arrow @click-left="$router.back()" />
-    <van-image width="100%" height="240" fit="cover" :src="product.mainImageUrl || 'https://fastly.jsdelivr.net/npm/@vant/assets/cat.jpeg'" />
+    <ProductGallery :images="imageList" />
     <div class="info">
       <div class="price">¥{{ minPrice }}</div>
       <div class="title">{{ product.title }}</div>
@@ -42,6 +42,7 @@ import { showFailToast, showSuccessToast } from 'vant'
 import { getProduct } from '../api/product'
 import { addToCart, updateCartItem, listCart } from '../api/cart'
 import { getToken } from '../api/request'
+import ProductGallery from '../components/ProductGallery.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -51,6 +52,16 @@ const selectedSkuId = ref(null)
 const minPrice = computed(() => {
   if (!product.value?.minPrice) return '0.00'
   return Number(product.value.minPrice).toFixed(2)
+})
+
+const imageList = computed(() => {
+  if (!product.value) return []
+  const urls = []
+  if (product.value.mainImageUrl) urls.push(product.value.mainImageUrl)
+  for (const url of product.value.galleryUrls || []) {
+    if (url && !urls.includes(url)) urls.push(url)
+  }
+  return urls
 })
 
 function requireLogin() {

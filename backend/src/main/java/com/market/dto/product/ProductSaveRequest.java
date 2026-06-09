@@ -19,6 +19,9 @@ public class ProductSaveRequest {
 
     private String mainImageUrl;
 
+    /** 辅图 URL，不含主图，最多 5 张 */
+    private List<String> galleryUrls;
+
     private String detailHtml;
 
     @NotEmpty(message = "至少需要一个 SKU")
