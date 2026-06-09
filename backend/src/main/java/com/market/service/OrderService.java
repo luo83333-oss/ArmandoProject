@@ -55,6 +55,7 @@ public class OrderService {
     private final OrderStateMachine orderStateMachine;
     private final ShopRankService shopRankService;
     private final ReviewService reviewService;
+    private final MessageService messageService;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -156,6 +157,13 @@ public class OrderService {
         orderMapper.updateById(order);
         orderStateMachine.logTransition(orderId, from, OrderStatus.PAID.getCode(), "user", userId, "支付成功");
         shopRankService.refreshShop(order.getShopId());
+        messageService.sendOrderNotice(
+                order.getUserId(),
+                "order",
+                "支付成功",
+                order.getId(),
+                "订单 " + order.getOrderNo() + " 已支付，等待商家发货。"
+        );
         return toVO(order);
     }
 
@@ -167,6 +175,13 @@ public class OrderService {
         order.setStatus(OrderStatus.CANCELLED.getCode());
         orderMapper.updateById(order);
         orderStateMachine.logTransition(orderId, from, OrderStatus.CANCELLED.getCode(), "user", userId, "用户取消");
+        messageService.sendOrderNotice(
+                order.getUserId(),
+                "order",
+                "订单已取消",
+                order.getId(),
+                "订单 " + order.getOrderNo() + " 已取消。"
+        );
         return toVO(order);
     }
 
@@ -182,6 +197,13 @@ public class OrderService {
         order.setShippedAt(LocalDateTime.now());
         orderMapper.updateById(order);
         orderStateMachine.logTransition(orderId, from, OrderStatus.SHIPPED.getCode(), "merchant", merchantUserId, logisticsNo);
+        messageService.sendOrderNotice(
+                order.getUserId(),
+                "ship",
+                "商家已发货",
+                order.getId(),
+                "订单 " + order.getOrderNo() + " 已发货，物流单号 " + logisticsNo + "。"
+        );
         return toVO(order);
     }
 
@@ -196,6 +218,13 @@ public class OrderService {
         orderMapper.updateById(order);
         orderStateMachine.logTransition(orderId, from, OrderStatus.COMPLETED.getCode(), "user", userId, "确认收货");
         shopRankService.refreshShop(order.getShopId());
+        messageService.sendOrderNotice(
+                order.getUserId(),
+                "order",
+                "订单已完成",
+                order.getId(),
+                "订单 " + order.getOrderNo() + " 已确认收货，欢迎评价。"
+        );
         return toVO(order);
     }
 

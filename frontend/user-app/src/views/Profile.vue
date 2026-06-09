@@ -15,6 +15,7 @@
 
     <van-cell-group inset class="mt">
       <van-cell title="我的订单" is-link icon="orders-o" @click="goOrders" />
+      <van-cell title="我的消息" is-link icon="chat-o" :badge="unreadBadge" @click="goMessages" />
       <van-cell title="我的收藏" is-link icon="star-o" @click="goFavorites" />
       <van-cell title="我的关注" is-link icon="like-o" @click="goFollowing" />
       <van-cell title="热门店铺榜" is-link icon="shop-o" @click="$router.push('/shops/rank')" />
@@ -28,20 +29,29 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { showFailToast } from 'vant'
 import { getMe } from '../api/auth'
+import { getUnreadCount } from '../api/message'
 import { clearToken, getToken } from '../api/request'
 
 const router = useRouter()
 const user = ref(null)
+const unreadCount = ref(0)
 const avatarUrl = 'https://fastly.jsdelivr.net/npm/@vant/assets/cat.jpeg'
+
+const unreadBadge = computed(() => {
+  if (!unreadCount.value) return ''
+  return unreadCount.value > 99 ? '99+' : String(unreadCount.value)
+})
 
 async function load() {
   if (!getToken()) return
   try {
     user.value = await getMe()
+    const result = await getUnreadCount()
+    unreadCount.value = Number(result?.count || 0)
   } catch (e) {
     showFailToast(e.message)
     clearToken()
@@ -78,6 +88,14 @@ function goFollowing() {
     return
   }
   router.push('/following')
+}
+
+function goMessages() {
+  if (!getToken()) {
+    router.push('/login')
+    return
+  }
+  router.push('/messages')
 }
 
 function onLogout() {

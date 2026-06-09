@@ -400,7 +400,45 @@ docker exec -i market-mysql mysql -umarket -pmarket_pass market < backend/sql/V3
 - `ShopRank.vue`：店铺行内关注按钮
 - `OrderDetail.vue`：已完成未评价订单弹出评价面板
 
-## 19. 目录说明
+## 19. Epic 3.3 联调流程（站内信 / 订单通知）
+
+对应 Linear：NL2-144（Epic）、NL2-149（站内信）。表已在 `V1__init_schema.sql`：`sys_message`。短信（NL2-150）、微信模板（NL2-148）留待外部账号对接。
+
+### 相关 API
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/messages` | 我的消息列表 |
+| GET | `/api/messages/unread-count` | 未读数量 `{ count }` |
+| GET | `/api/messages/{id}` | 消息详情 |
+| POST | `/api/messages/{id}/read` | 标为已读 |
+| POST | `/api/messages/read-all` | 全部已读 |
+
+### 自动通知时机
+
+| 事件 | msg_type | 触发点 |
+|------|----------|--------|
+| 支付成功 | `order` | `OrderService.completePayment` |
+| 商家发货 | `ship` | `OrderService.ship` |
+| 确认收货 | `order` | `OrderService.confirmReceive` |
+| 取消订单 | `order` | `OrderService.cancel` |
+
+### 联调步骤
+
+| 步骤 | 操作 |
+|------|------|
+| 1 | 重启后端（含 Message API） |
+| 2 | 用户端登录 → 完成一笔订单支付 |
+| 3 | **我的 → 我的消息** 出现「支付成功」，角标显示未读 |
+| 4 | 商家发货 → 用户收到「商家已发货」 |
+| 5 | 确认收货 → 收到「订单已完成」；点消息可跳转订单详情 |
+
+### 前端入口
+
+- `Profile.vue`：我的消息（未读角标）
+- `Messages.vue`：列表、详情弹层、全部已读、查看订单
+
+## 20. 目录说明
 
 ```
 backend/          Spring Boot 2.7 + MyBatis-Plus
