@@ -31,6 +31,10 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
+      - name: Set up Maven
+        uses: s4u/setup-maven-action@v3.1.0
+        with:
+          maven-version: 3.9.9
       - name: Start MySQL and Redis
         run: docker compose up -d mysql redis
       - name: Wait for MySQL
@@ -47,4 +51,4 @@ jobs:
           fi
       - name: Run backend tests
         working-directory: backend
-        run: ./mvnw -B test
+        run: mvn -B test
