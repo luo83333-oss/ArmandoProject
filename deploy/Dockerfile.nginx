@@ -1,0 +1,27 @@
+# NL2-158 — build three Vue apps and serve via Nginx
+FROM node:20-alpine AS user-build
+WORKDIR /build
+COPY frontend/user-app/package.json frontend/user-app/package-lock.json ./
+RUN npm ci
+COPY frontend/user-app ./
+RUN npm run build
+
+FROM node:20-alpine AS merchant-build
+WORKDIR /build
+COPY frontend/merchant-admin/package.json frontend/merchant-admin/package-lock.json ./
+RUN npm ci
+COPY frontend/merchant-admin ./
+RUN npm run build
+
+FROM node:20-alpine AS platform-build
+WORKDIR /build
+COPY frontend/platform-admin/package.json frontend/platform-admin/package-lock.json ./
+RUN npm ci
+COPY frontend/platform-admin ./
+RUN npm run build
+
+FROM nginx:1.25-alpine
+COPY deploy/nginx/templates/market.conf.template /etc/nginx/templates/market.conf.template
+COPY --from=user-build /build/dist /usr/share/nginx/html/user
+COPY --from=merchant-build /build/dist /usr/share/nginx/html/merchant
+COPY --from=platform-build /build/dist /usr/share/nginx/html/platform

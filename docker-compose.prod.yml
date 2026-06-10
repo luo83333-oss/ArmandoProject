@@ -1,0 +1,93 @@
+# NL2-158 production stack — use with deploy/.env
+# Usage: docker compose -f docker-compose.prod.yml --env-file deploy/.env up -d --build
+name: market-prod
+
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: market
+      MYSQL_USER: market
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/sql/V1__init_schema.sql:/docker-entrypoint-initdb.d/V1__init_schema.sql:ro
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+    networks:
+      - market-net
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - market-net
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_USER: market
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRE_HOURS: ${JWT_EXPIRE_HOURS:-72}
+      PAYMENT_MOCK_ENABLED: ${PAYMENT_MOCK_ENABLED:-false}
+      PAYMENT_SANDBOX_SECRET: ${PAYMENT_SANDBOX_SECRET:-}
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - market-net
+
+  nginx:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      USER_DOMAIN: ${USER_DOMAIN}
+      MERCHANT_DOMAIN: ${MERCHANT_DOMAIN}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN}
+    volumes:
+      - ./deploy/nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - market-net
+
+volumes:
+  mysql_data:
+  redis_data:
+  uploads_data:
+
+networks:
+  market-net:
+    driver: bridge

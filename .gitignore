@@ -14,6 +14,7 @@ Thumbs.db
 .env.local
 .env.*.local
 deploy/.env
+deploy/nginx/ssl/*.pem
 
 # Java / Spring Boot
 backend/target/

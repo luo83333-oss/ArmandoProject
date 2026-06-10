@@ -1,0 +1,104 @@
+upstream market_api {
+    server api:8082;
+    keepalive 16;
+}
+
+# HTTP -> HTTPS
+server {
+    listen 80;
+    server_name ${USER_DOMAIN} ${MERCHANT_DOMAIN} ${ADMIN_DOMAIN};
+    return 301 https://$host$request_uri;
+}
+
+# User app
+server {
+    listen 443 ssl http2;
+    server_name ${USER_DOMAIN};
+
+    ssl_certificate     /etc/nginx/ssl/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    root /usr/share/nginx/html/user;
+    index index.html;
+
+    location /api/ {
+        proxy_pass http://market_api;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /uploads/ {
+        proxy_pass http://market_api;
+        proxy_set_header Host $host;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+
+# Merchant admin
+server {
+    listen 443 ssl http2;
+    server_name ${MERCHANT_DOMAIN};
+
+    ssl_certificate     /etc/nginx/ssl/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    root /usr/share/nginx/html/merchant;
+    index index.html;
+
+    location /api/ {
+        proxy_pass http://market_api;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /uploads/ {
+        proxy_pass http://market_api;
+        proxy_set_header Host $host;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+
+# Platform admin
+server {
+    listen 443 ssl http2;
+    server_name ${ADMIN_DOMAIN};
+
+    ssl_certificate     /etc/nginx/ssl/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    root /usr/share/nginx/html/platform;
+    index index.html;
+
+    location /api/ {
+        proxy_pass http://market_api;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /uploads/ {
+        proxy_pass http://market_api;
+        proxy_set_header Host $host;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

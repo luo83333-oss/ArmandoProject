@@ -497,3 +497,26 @@ cd d:\Armando
 Linux 脚本：`deploy/backup/backup-mysql.sh`、`restore-mysql.sh`；cron 示例见 `deploy/backup/crontab.example`。
 
 完整说明与演练 checklist：`docs/deploy/MYSQL_BACKUP.md`。
+
+## 23. 生产部署（NL2-158）
+
+对应 Linear：NL2-158（Docker + Nginx + HTTPS），Epic NL2-146。
+
+### 文件
+
+| 文件 | 说明 |
+|------|------|
+| `docker-compose.prod.yml` | 生产栈：mysql、redis、api、nginx |
+| `backend/Dockerfile` | API 镜像 |
+| `deploy/Dockerfile.nginx` | 构建三端前端 + Nginx |
+| `deploy/.env.production.example` | 环境变量模板 |
+
+### ECS 一键部署
+
+```bash
+cp deploy/.env.production.example deploy/.env
+# 配置域名、密码、JWT、SSL 证书
+./deploy/scripts/deploy-prod.sh
+```
+
+详见 `docs/deploy/PRODUCTION_DEPLOY.md`。

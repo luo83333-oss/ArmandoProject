@@ -10,8 +10,7 @@ fi
 
 BACKUP_FILE="$1"
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
-COMPOSE_FILE="${ROOT_DIR}/docker-compose.yml"
-CONTAINER="${MYSQL_CONTAINER:-market-mysql}"
+COMPOSE_FILE="${COMPOSE_FILE:-${ROOT_DIR}/docker-compose.yml}"
 
 DB_USER="${MYSQL_USER:-market}"
 DB_PASS="${MYSQL_PASSWORD:-market_pass}"
@@ -23,8 +22,8 @@ if [ ! -f "$BACKUP_FILE" ]; then
   exit 1
 fi
 
-if ! docker ps --format '{{.Names}}' | grep -qx "$CONTAINER"; then
-  echo "ERROR: container $CONTAINER not running" >&2
+if ! docker compose -f "$COMPOSE_FILE" ps --status running mysql -q 2>/dev/null | grep -q .; then
+  echo "ERROR: mysql service not running (compose: $COMPOSE_FILE)" >&2
   exit 1
 fi
 

@@ -12,7 +12,7 @@
 
 - 数据库：`market`（业务全库逻辑备份）
 - 方式：`mysqldump --single-transaction`（InnoDB 一致性，不停服）
-- **不含**：`backend/uploads/` 商品图片（需单独 rsync/OSS 备份，见 NL2-158）
+- **不含**：上传图片卷 — 使用 `deploy/scripts/backup-uploads.sh`（NL2-158）
 
 ## 本地（Windows + Docker）
 
