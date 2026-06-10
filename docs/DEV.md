@@ -535,3 +535,17 @@ cp deploy/.env.production.example deploy/.env
 - 生产 API 日志：`/app/logs/market-api.log`（容器内）
 
 详见 `docs/deploy/MONITORING.md`。
+
+## 25. 上线 Checklist 与回滚（NL2-161）
+
+对应 Linear：NL2-161，Epic NL2-146。
+
+```bash
+# 上线前（ECS）
+./deploy/scripts/pre-launch-check.sh
+
+# 回滚到上一稳定 commit
+./deploy/scripts/rollback-release.sh --git-ref <SHA>
+```
+
+可打印勾选清单与回滚决策：`docs/deploy/LAUNCH_CHECKLIST.md`。

@@ -27,6 +27,14 @@ Internet :443/:80
 - [ ] `deploy/.env` 已填写强密码与 `JWT_SECRET`（≥32 字符）
 - [ ] TLS 证书已放到 `deploy/nginx/ssl/fullchain.pem`、`privkey.pem`
 
+## 上线前检查（NL2-161）
+
+```bash
+./deploy/scripts/pre-launch-check.sh
+```
+
+可打印 checklist：`docs/deploy/LAUNCH_CHECKLIST.md`（含回滚方案）。
+
 ## 首次部署（ECS Linux）
 
 ```bash

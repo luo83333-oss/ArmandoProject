@@ -34,3 +34,7 @@
 - [ ] 营业执照、域名、ECS、商户号（至少明确「mock 继续」书面决策）
 
 完成后可将 Milestone **Phase 0** 标为完成，进入 **Phase 1 W1**。
+
+## 上线（Phase 4 / NL2-161）
+
+生产 go-live 勾选与回滚：见 [`docs/deploy/LAUNCH_CHECKLIST.md`](../deploy/LAUNCH_CHECKLIST.md)。
