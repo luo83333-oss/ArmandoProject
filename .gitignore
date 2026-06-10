@@ -38,6 +38,7 @@ coverage/
 # Docker volumes (local)
 data/mysql/
 data/redis/
+data/backups/
 
 # Local uploaded images
 backend/uploads/

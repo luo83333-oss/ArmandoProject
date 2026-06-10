@@ -477,3 +477,23 @@ frontend/user-app       Vue3 + Vant
 frontend/merchant-admin Vue3 + Element Plus
 frontend/platform-admin Vue3 + Element Plus
 ```
+
+## 22. MySQL 备份与恢复（NL2-157）
+
+对应 Linear：NL2-157（MySQL 备份与恢复演练），Epic NL2-146。
+
+### 快速命令
+
+```powershell
+cd d:\Armando
+.\scripts\backup-mysql.ps1
+.\scripts\restore-mysql.ps1 -BackupFile data\backups\mysql\market-<时间戳>.sql.gz
+```
+
+备份目录 `data/backups/mysql/` 已加入 `.gitignore`。
+
+### 生产
+
+Linux 脚本：`deploy/backup/backup-mysql.sh`、`restore-mysql.sh`；cron 示例见 `deploy/backup/crontab.example`。
+
+完整说明与演练 checklist：`docs/deploy/MYSQL_BACKUP.md`。
