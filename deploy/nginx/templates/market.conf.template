@@ -1,3 +1,7 @@
+log_format market '$remote_addr - $host [$time_local] "$request" $status $body_bytes_sent "$http_referer"';
+access_log /dev/stdout market;
+error_log /dev/stderr warn;
+
 upstream market_api {
     server api:8082;
     keepalive 16;

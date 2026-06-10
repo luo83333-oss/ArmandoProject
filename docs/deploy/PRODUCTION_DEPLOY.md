@@ -61,6 +61,17 @@ curl -k https://shop.example.com/api/health
 | MySQL | `COMPOSE_FILE=docker-compose.prod.yml ./deploy/backup/backup-mysql.sh` |
 | 上传图片 | `./deploy/scripts/backup-uploads.sh` |
 
+## 监控（NL2-160）
+
+```bash
+cp deploy/monitoring/alert.env.example deploy/monitoring/alert.env
+chmod +x deploy/monitoring/check-health.sh
+./deploy/monitoring/check-health.sh
+# cron 见 deploy/monitoring/crontab.example
+```
+
+详见 `docs/deploy/MONITORING.md`。
+
 ## 更新发布
 
 ```bash

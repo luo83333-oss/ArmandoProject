@@ -1,0 +1,5 @@
+# NL2-160 生产监控 cron（ECS: crontab -e）
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+*/5 * * * * cd /opt/ArmandoProject && ./deploy/monitoring/check-health.sh >> /var/log/market-monitor.log 2>&1

@@ -520,3 +520,18 @@ cp deploy/.env.production.example deploy/.env
 ```
 
 详见 `docs/deploy/PRODUCTION_DEPLOY.md`。
+
+## 24. 监控与日志（NL2-160）
+
+对应 Linear：NL2-160，Epic NL2-146。
+
+```bash
+# 生产 ECS（需 docker-compose.prod 已运行）
+./deploy/monitoring/check-health.sh
+```
+
+- 磁盘、容器、API health、Nginx 5xx 阈值告警
+- 可选 Webhook：`deploy/monitoring/alert.env`
+- 生产 API 日志：`/app/logs/market-api.log`（容器内）
+
+详见 `docs/deploy/MONITORING.md`。
